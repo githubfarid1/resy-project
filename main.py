@@ -144,25 +144,17 @@ class ResyBotv1Frame(ttk.Frame):
 		self.rowconfigure(5, weight=1)
 		
 		# populate
-		titleLabel = TitleLabel(self, text="Dowload Catalog Product from messicks.com")
+		titleLabel = TitleLabel(self, text="Resy Bot v1")
 		closeButton = CloseButton(self)
-
-		labelsname = Label(self, text="Product URL:")
-		# urltxt = Entry(self, width=65)
-		urltxt = Text(self, height=12, width=40) 
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(urltxt=urltxt.get("1.0", END) ))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
-		labelsname.grid(column = 0, row = 3, sticky=(W))
-		urltxt.grid(column = 0, row = 3, pady=10)
 		runButton.grid(column = 0, row = 5, sticky = (E))
 		closeButton.grid(column = 0, row = 6, sticky = (E, N, S))
 
 	def run_process(self, **kwargs):
-			# messagebox.showwarning(title='Warning', message='')
-			urls = str(kwargs['urltxt']).replace("\n", "#")
-			run_module(comlist=[PYLOC, "modules/catmessick.py", "-url", urls])
+		run_module(comlist=[PYLOC, "modules/resybotv1.py"])
 
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):
