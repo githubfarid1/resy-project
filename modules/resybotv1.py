@@ -10,11 +10,23 @@ from playwright_stealth import stealth_sync
 import logging
 import re
 import sys
+import argparse
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from settings import RESY_EMAIL, RESY_PASSWORD, HEADLESS
+
 load_dotenv('settings.env')
-email = os.getenv('RESY_EMAIL')
-password = os.getenv('RESY_PASSWORD')
+
+# email = os.getenv('RESY_EMAIL')
+# password = os.getenv('RESY_PASSWORD')
+email = RESY_EMAIL
+password = RESY_PASSWORD
+
 # PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
-headless = True if os.getenv('HEADLESS') == 'yes' else False
+# headless = True if os.getenv('HEADLESS') == 'yes' else False
+headless = True if HEADLESS == 'yes' else False
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
 
@@ -72,13 +84,35 @@ def reserve_restaurant(page, selected_reservation):
 
 
 def main():
-    restaurants = ['carat-fine-indian-cuisine', 'marcos-oyster-bar-and-grill', 'ebeneezers-kebabs-and-pizzeria-8847']
-    date_wanted = "2024-06-30"
-    seats = "2"
-    time_wanted = "6:00 PM"
-    period_wanted = "Dinner"
-    reservation_type = "Table"
-    restaurant_link = f"https://resy.com/cities/hong-kong/venues/{restaurants[1]}?date={date_wanted}&seats={seats}"
+    parser = argparse.ArgumentParser(description="Resy Bot v1")
+    parser.add_argument('-u', '--url', type=str,help="Base URL")
+    parser.add_argument('-d', '--date', type=str,help="Date wanted")
+    parser.add_argument('-t', '--time', type=str,help="Time wanted")
+    parser.add_argument('-s', '--seats', type=str,help="Seats count")
+    parser.add_argument('-p', '--period', type=str,help="period type")
+    parser.add_argument('-r', '--reservation', type=str,help="Reservation type")
+
+    args = parser.parse_args()
+        
+    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
+        input('Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]')
+        sys.exit()
+
+    # restaurants = ['carat-fine-indian-cuisine', 'marcos-oyster-bar-and-grill', 'ebeneezers-kebabs-and-pizzeria-8847']
+    # date_wanted = "2024-06-30"
+    # seats = "2"
+    # time_wanted = "6:00 PM"
+    # period_wanted = "Dinner"
+    # reservation_type = "Table"
+    # restaurant_link = f"https://resy.com/cities/hong-kong/venues/{restaurants[1]}?date={date_wanted}&seats={seats}"
+
+    date_wanted = args.date
+    seats = args.seats
+    time_wanted = args.time
+    period_wanted = args.period
+    reservation_type = args.reservation
+    restaurant_link = f"{args.url.split('?')[0]}?date={date_wanted}&seats={seats}"
+
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15",

@@ -14,6 +14,7 @@ import git
 import warnings
 import shutil
 import settings as s
+from tktimepicker import SpinTimePickerOld
 
 warnings.filterwarnings("ignore", category=UserWarning)
 if platform == "linux" or platform == "linux2":
@@ -142,19 +143,68 @@ class ResyBotv1Frame(ttk.Frame):
 		self.rowconfigure(3, weight=1)
 		self.rowconfigure(4, weight=1)
 		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+
+
 		
 		# populate
 		titleLabel = TitleLabel(self, text="Resy Bot v1")
+		urllabel = Label(self, text="Base URL: ")
+		datelabel = Label(self, text="Date: ")
+		timelabel = Label(self, text="Time: ")
+		seatslabel = Label(self, text="Seats: ")
+		periodlabel = Label(self, text="Period: ")
+		reservationlabel = Label(self, text="Reservation Type: ")
+		urlentry = Entry(self, width=80)
+		urlentry.insert(0, "https://resy.com/cities/hong-kong/venues/coucou-hotpottea-break-k11-musea")
+		dateentry = DateEntry(self, width= 20, date_pattern='mm/dd/yyyy')
+		timeentry = SpinTimePickerOld(self)
+		timeentry.addHours12()
+		timeentry.addMinutes()
+		timeentry.addPeriod()
+		seatsentry = Spinbox(self, from_=1, to=50)
+		periodlist = ["Dinner", "Lunch"]
+		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
+		periodentry['values'] = [period for period in periodlist]
+		periodentry.current(0)
+		reservationlist = ["Table", "Dining Room"]
+		reservationentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
+		reservationentry['values'] = [reservation for reservation in reservationlist]
+		reservationentry.current(0)
+
+
 		closeButton = CloseButton(self)
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
-		runButton.grid(column = 0, row = 5, sticky = (E))
-		closeButton.grid(column = 0, row = 6, sticky = (E, N, S))
+		urllabel.grid(column = 0, row = 1, sticky=(W))
+		urlentry.grid(column = 0, row = 1, sticky=(E))
+		datelabel.grid(column = 0, row = 2, sticky=(W))
+		dateentry.grid(column = 0, row = 2, sticky=(E))
+		timelabel.grid(column = 0, row = 3, sticky=(W))
+		timeentry.grid(column = 0, row = 3, sticky=(E))
+		seatslabel.grid(column = 0, row = 4, sticky=(W))
+		seatsentry.grid(column = 0, row = 4, sticky=(E))
+		periodlabel.grid(column = 0, row = 5, sticky=(W))
+		periodentry.grid(column = 0, row = 5, sticky=(E))
+		reservationlabel.grid(column = 0, row = 6, sticky=(W))
+		reservationentry.grid(column = 0, row = 6, sticky=(E))
+
+		runButton.grid(column = 0, row = 7, sticky = (E))
+		closeButton.grid(column = 0, row = 8, sticky = (E))
 
 	def run_process(self, **kwargs):
-		run_module(comlist=[PYLOC, "modules/resybotv1.py"])
+		hour = str(kwargs['time'].hours())
+		period = kwargs['time'].period().replace(".","").upper()
+		if len(str(kwargs['time'].minutes())) == 1:
+			minute = f"0{str(kwargs['time'].minutes())}"
+		else:
+			minute = str(kwargs['time'].minutes())
+		formatted_time = f"{hour}:{minute} {period}"
+		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '"{}"'.format(kwargs['url'].get()), "-d", '"{}"'.format(kwargs['date'].get_date()), "-t", '"{}"'.format(formatted_time), "-s", '"{}"'.format(kwargs['seats'].get()), "-p", '"{}"'.format(kwargs['period'].get()), "-r", '"{}"'.format(kwargs['reservation'].get()) ])
 
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):
