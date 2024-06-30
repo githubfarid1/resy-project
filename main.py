@@ -164,7 +164,9 @@ class ResyBotv1Frame(ttk.Frame):
 		timeentry.addHours12()
 		timeentry.addMinutes()
 		timeentry.addPeriod()
-		seatsentry = Spinbox(self, from_=1, to=50)
+		defseat = StringVar(value=2)
+		seatsentry = Spinbox(self, from_=1, to=50, textvariable=defseat, state="readonly")
+		seatsentry.insert(0,2)
 		periodlist = ["Dinner", "Lunch"]
 		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
 		periodentry['values'] = [period for period in periodlist]
@@ -204,7 +206,7 @@ class ResyBotv1Frame(ttk.Frame):
 		else:
 			minute = str(kwargs['time'].minutes())
 		formatted_time = f"{hour}:{minute} {period}"
-		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '"{}"'.format(kwargs['url'].get()), "-d", '"{}"'.format(kwargs['date'].get_date()), "-t", '"{}"'.format(formatted_time), "-s", '"{}"'.format(kwargs['seats'].get()), "-p", '"{}"'.format(kwargs['period'].get()), "-r", '"{}"'.format(kwargs['reservation'].get()) ])
+		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '{}'.format(kwargs['url'].get()), "-d", '{}'.format(kwargs['date'].get_date()), "-t", '{}'.format(formatted_time), "-s", '{}'.format(kwargs['seats'].get()), "-p", '{}'.format(kwargs['period'].get()), "-r", '{}'.format(kwargs['reservation'].get()) ])
 
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):

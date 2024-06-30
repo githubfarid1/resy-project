@@ -75,12 +75,19 @@ def reserve_restaurant(page, selected_reservation):
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=10000).click()
         # breakpoint()
         confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
-        logging.info(f"Reservation confirmation message: {confirmation_message}")
-        logging.info("Reservation confirmed.")
-        page.evaluate("() => document.fonts.ready")
+        message1 = f"Reservation confirmation message: {confirmation_message}"
+        message2 = "Reservation confirmed."
+        logging.info(message1)
+        logging.info(message2)
+        input(" ".join([message1, message2]))
+        sys.exit()
+        # page.evaluate("() => document.fonts.ready")
         # page.screenshot(path='debugging_photos/screenshot3.png')
     except Exception as e:
-        logging.exception("Failed to complete reservation")
+        message = "Failed to complete reservation"
+        logging.exception(message)
+        input(message)
+        sys.exit()
 
 
 def main():
@@ -174,17 +181,26 @@ def main():
                 random_delay(2, 5)
                 # page.screenshot(path="debugging_photos/screenshot1.png", timeout=120000)
                 # breakpoint()
-                menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=120000)
-                selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type.lower().title()}"]]')
-                if selected_reservation:
-                    logging.info(
-                        f"Reservation available at {time_wanted} for {seats} people {reservation_type.lower().title()}")
-                    reserve_restaurant(page, selected_reservation)
-                    random_delay(3, 6)
-                    
-
+                page.query_selector('//*[@id="open-but-unavailable-without-future"]')
+                if page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]'):
+                    message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
+                    logging.info(message)
+                    input(message)
+                    sys.exit()
                 else:
-                    logging.info("No reservation available")
+                    menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
+                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type.lower().title()}"]]')
+                    if selected_reservation:
+                        logging.info(
+                            f"Reservation available at {time_wanted} for {seats} people {reservation_type.lower().title()}")
+                        reserve_restaurant(page, selected_reservation)
+                        random_delay(3, 6)
+                    else:
+                        message = "No reservation available"
+                        logging.info(message)
+                        input(message)
+                        sys.exit()
+
                 break  
         except Exception as e:
             # Show all error details in log file
