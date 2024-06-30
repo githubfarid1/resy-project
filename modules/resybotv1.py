@@ -69,24 +69,37 @@ def reserve_restaurant(page, selected_reservation):
     """Reserve the restaurant with improved error handling and explicit waits."""
     try:
         selected_reservation.click()
+        
+        page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000).content_frame().wait_for_selector('[data-test-id="order_summary_page-button-book"]')
+        for i in range(5): #make the range as long as needed
+                page.mouse.wheel(0, 15000)
+                time.sleep(2)        
+
+        page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000).content_frame().query_selector('//div[contains(@class,"SummaryPage__book")]').click()
+        # iframe.click()
         breakpoint()
-        frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
-        frame = frame_element.content_frame()
-        frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=10000).click()
+        # frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
+        # frame = frame_element.content_frame()
+        # frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
+        # frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
+        # reserved_button.click()
         # breakpoint()
-        confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
-        message1 = f"Reservation confirmation message: {confirmation_message}"
-        message2 = "Reservation confirmed."
-        logging.info(message1)
-        logging.info(message2)
-        input(" ".join([message1, message2]))
-        sys.exit()
+
+
+        # confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
+        # message1 = f"Reservation confirmation message: {confirmation_message}"
+        # message2 = "Reservation confirmed."
+        # logging.info(message1)
+        # logging.info(message2)
+        # input(" ".join([message1, message2, "press any to key to close..."]))
+        # sys.exit()
         # page.evaluate("() => document.fonts.ready")
         # page.screenshot(path='debugging_photos/screenshot3.png')
     except Exception as e:
         message = "Failed to complete reservation"
         logging.exception(message)
-        input(message)
+        input(" ".join([message, "press any to key to close..."]))
+        breakpoint()
         sys.exit()
 
 
@@ -102,7 +115,7 @@ def main():
     args = parser.parse_args()
         
     if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
-        input('Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]')
+        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', "press any to key to close..."]))
         sys.exit()
 
     # restaurants = ['carat-fine-indian-cuisine', 'marcos-oyster-bar-and-grill', 'ebeneezers-kebabs-and-pizzeria-8847']
@@ -167,28 +180,40 @@ def main():
                 page.on("pageerror", lambda msg: logging.error(f"PAGE ERROR: {msg}"))
                 page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
                 page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
-                logging.info("Bot is running...")
+                message = "Bot is running..."
+                logging.info(message)
+                print(message)
                 
                 page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
                 # breakpoint()
                 random_delay(2, 5)
                 login_to_resy(page, email, password)
-                logging.info("Logged in successfully.")
+                message = "Logged in successfully."
+                logging.info(message)
+                print(message)
                 random_delay(2, 5)
+                # breakpoint()
+
                 page.goto(restaurant_link, wait_until='domcontentloaded')
                 page.wait_for_timeout(20000)
                 page.evaluate("() => document.fonts.ready")
                 random_delay(2, 5)
                 # page.screenshot(path="debugging_photos/screenshot1.png", timeout=120000)
                 # breakpoint()
-                page.query_selector('//*[@id="open-but-unavailable-without-future"]')
-                if page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]'):
+                # page.query_selector('//*[@id="open-but-unavailable-without-future"]')
+                # page.frame_locator('#__privateStripeMetricsController9460').locator
+                if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
+                    page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
+
+                if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
                     message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
                     logging.info(message)
-                    input(message)
+                    input(" ".join([message, "Press any key to close..."]))
                     sys.exit()
                 else:
                     menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
+                    if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
+                        page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
                     selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type.lower().title()}"]]')
                     if selected_reservation:
                         logging.info(
@@ -198,7 +223,7 @@ def main():
                     else:
                         message = "No reservation available"
                         logging.info(message)
-                        input(message)
+                        input(" ".join([message, "Press any key to close..."]))
                         sys.exit()
 
                 break  

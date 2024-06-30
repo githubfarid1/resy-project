@@ -158,7 +158,7 @@ class ResyBotv1Frame(ttk.Frame):
 		periodlabel = Label(self, text="Period: ")
 		reservationlabel = Label(self, text="Reservation Type: ")
 		urlentry = Entry(self, width=80)
-		urlentry.insert(0, "https://resy.com/cities/hong-kong/venues/coucou-hotpottea-break-k11-musea")
+		urlentry.insert(0, "https://resy.com/cities/new-york-ny/venues/zensushi-omakase")
 		dateentry = DateEntry(self, width= 20, date_pattern='mm/dd/yyyy')
 		timeentry = SpinTimePickerOld(self)
 		timeentry.addHours12()
@@ -171,12 +171,10 @@ class ResyBotv1Frame(ttk.Frame):
 		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
 		periodentry['values'] = [period for period in periodlist]
 		periodentry.current(0)
-		reservationlist = ["Table", "Dining Room"]
+		reservationlist = ["Table", "Dining Room", "Bar Counter", "Table (Not Bar)", "Side table(not bar)"]
 		reservationentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
 		reservationentry['values'] = [reservation for reservation in reservationlist]
 		reservationentry.current(0)
-
-
 		closeButton = CloseButton(self)
 		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
 		
