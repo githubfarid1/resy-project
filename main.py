@@ -13,7 +13,7 @@ from subprocess import Popen, check_call
 import git
 import warnings
 import shutil
-import settings as s
+from settings import PYTHON_EXE, RESERVATION_LIST, PERIOD_LIST
 from tktimepicker import SpinTimePickerOld
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -62,7 +62,7 @@ class Window(Tk):
 		# settingButton = ttk.Button(self, text='Chrome Setup', command=lambda:chromeSetup())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
-		pullButton.grid(row = 2, column = 2, sticky = (W), padx=20, pady=10)
+		# pullButton.grid(row = 2, column = 2, sticky = (W), padx=20, pady=10)
 		# settingButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
 
 		mainFrame = MainFrame(self)
@@ -167,13 +167,11 @@ class ResyBotv1Frame(ttk.Frame):
 		defseat = StringVar(value=2)
 		seatsentry = Spinbox(self, from_=1, to=50, textvariable=defseat, state="readonly")
 		seatsentry.insert(0,2)
-		periodlist = ["Dinner", "Lunch"]
 		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
-		periodentry['values'] = [period for period in periodlist]
+		periodentry['values'] = [period for period in PERIOD_LIST]
 		periodentry.current(0)
-		reservationlist = ["Table", "Dining Room", "Bar Counter", "Table (Not Bar)", "Side table(not bar)"]
 		reservationentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
-		reservationentry['values'] = [reservation for reservation in reservationlist]
+		reservationentry['values'] = [reservation for reservation in RESERVATION_LIST]
 		reservationentry.current(0)
 		closeButton = CloseButton(self)
 		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
@@ -247,6 +245,6 @@ if __name__ == "__main__":
 	if platform == "linux" or platform == "linux2":
 		PYLOC = "python"
 	elif platform == "win32":
-		PYLOC = s.PYTHON_EXE
+		PYLOC = PYTHON_EXE
 
 main()

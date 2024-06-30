@@ -207,22 +207,22 @@ def main():
                 if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
                     message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
                     logging.info(message)
-                    input(" ".join([message, "Press any key to close..."]))
+                    input(" ".join([message, CLOSE_MESSAGE]))
                     sys.exit()
                 else:
                     menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
                     if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type.lower().title()}"]]')
+                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type}"]]')
                     if selected_reservation:
                         logging.info(
-                            f"Reservation available at {time_wanted} for {seats} people {reservation_type.lower().title()}")
+                            f"Reservation available at {time_wanted} for {seats} people {reservation_type}")
                         reserve_restaurant(page, selected_reservation)
                         random_delay(3, 6)
                     else:
                         message = "No reservation available"
                         logging.info(message)
-                        input(" ".join([message, "Press any key to close..."]))
+                        input(" ".join([message, CLOSE_MESSAGE]))
                         sys.exit()
 
                 break  
