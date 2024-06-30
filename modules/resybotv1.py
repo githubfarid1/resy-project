@@ -15,18 +15,17 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from settings import RESY_EMAIL, RESY_PASSWORD, HEADLESS
-
+from settings import CLOSE_MESSAGE
 load_dotenv('settings.env')
 
-# email = os.getenv('RESY_EMAIL')
-# password = os.getenv('RESY_PASSWORD')
-email = RESY_EMAIL
-password = RESY_PASSWORD
+email = os.getenv('RESY_EMAIL')
+password = os.getenv('RESY_PASSWORD')
+# email = RESY_EMAIL
+# password = RESY_PASSWORD
 
 # PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
-# headless = True if os.getenv('HEADLESS') == 'yes' else False
-headless = True if HEADLESS == 'yes' else False
+headless = True if os.getenv('HEADLESS') == 'yes' else False
+# headless = True if HEADLESS == 'yes' else False
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
 
@@ -70,35 +69,35 @@ def reserve_restaurant(page, selected_reservation):
     try:
         selected_reservation.click()
         
-        page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000).content_frame().wait_for_selector('[data-test-id="order_summary_page-button-book"]')
-        for i in range(5): #make the range as long as needed
-                page.mouse.wheel(0, 15000)
-                time.sleep(2)        
 
-        page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000).content_frame().query_selector('//div[contains(@class,"SummaryPage__book")]').click()
-        # iframe.click()
-        breakpoint()
-        # frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
-        # frame = frame_element.content_frame()
-        # frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
-        # frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
-        # reserved_button.click()
-        # breakpoint()
+        frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
+        frame = frame_element.content_frame()
+        frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
+        for i in range(5):
+            page.mouse.wheel(0, 15000)
+            time.sleep(2)        
 
+        frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
+        time.sleep(5)
+        if frame.query_selector('.StripeForm__header'):
+            message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
+            logging.info(message)
+            input(" ".join([message, CLOSE_MESSAGE]))
+            sys.exit()
 
-        # confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
-        # message1 = f"Reservation confirmation message: {confirmation_message}"
-        # message2 = "Reservation confirmed."
-        # logging.info(message1)
-        # logging.info(message2)
-        # input(" ".join([message1, message2, "press any to key to close..."]))
-        # sys.exit()
+        confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
+        message1 = f"Reservation confirmation message: {confirmation_message}"
+        message2 = "Reservation confirmed."
+        logging.info(message1)
+        logging.info(message2)
+        input(" ".join([message1, message2, CLOSE_MESSAGE]))
+        sys.exit()
         # page.evaluate("() => document.fonts.ready")
         # page.screenshot(path='debugging_photos/screenshot3.png')
     except Exception as e:
         message = "Failed to complete reservation"
         logging.exception(message)
-        input(" ".join([message, "press any to key to close..."]))
+        input(" ".join([message, CLOSE_MESSAGE]))
         breakpoint()
         sys.exit()
 
@@ -115,7 +114,7 @@ def main():
     args = parser.parse_args()
         
     if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
-        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', "press any to key to close..."]))
+        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', CLOSE_MESSAGE]))
         sys.exit()
 
     # restaurants = ['carat-fine-indian-cuisine', 'marcos-oyster-bar-and-grill', 'ebeneezers-kebabs-and-pizzeria-8847']
