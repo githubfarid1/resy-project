@@ -11,25 +11,19 @@ import logging
 import re
 import sys
 import argparse
+
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-
 from settings import CLOSE_MESSAGE
-load_dotenv('settings.env')
 
+load_dotenv('settings.env')
 email = os.getenv('RESY_EMAIL')
 password = os.getenv('RESY_PASSWORD')
-# email = RESY_EMAIL
-# password = RESY_PASSWORD
-
 # PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
 headless = True if os.getenv('HEADLESS') == 'yes' else False
 # headless = True if HEADLESS == 'yes' else False
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
-
-
-
 
 def login_to_resy(page, email, password):
     """Login to Resy with enhanced stability and error handling."""
@@ -49,15 +43,9 @@ def login_to_resy(page, email, password):
     
     page.click('[name="login_form"] button', timeout=10000)
     # time.sleep(10)
-    # page.get_by_role("button", name=re.compile("continue", re.IGNORECASE)).click()
-    # page.click("text=Continue", timeout=5000)
-    # page.click('/html/body/div[8]/div/div/div/div/div[2]/div[2]/div/form/div/button', timeout=5000)
-    
     # breakpoint()
     # page.evaluate("document.querySelector('[name=\"login_form\"] button').click()")
     page.evaluate("() => document.fonts.ready")
-    # breakpoint()
-    
     # page.screenshot(path='debugging_photos/screenshot2.png')
     # logging.info("Logged in and screenshot taken.")
 
@@ -68,8 +56,6 @@ def reserve_restaurant(page, selected_reservation):
     """Reserve the restaurant with improved error handling and explicit waits."""
     try:
         selected_reservation.click()
-        
-
         frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
         frame = frame_element.content_frame()
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
@@ -98,7 +84,7 @@ def reserve_restaurant(page, selected_reservation):
         message = "Failed to complete reservation"
         logging.exception(message)
         input(" ".join([message, CLOSE_MESSAGE]))
-        breakpoint()
+        # breakpoint()
         sys.exit()
 
 
@@ -116,14 +102,6 @@ def main():
     if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
         input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', CLOSE_MESSAGE]))
         sys.exit()
-
-    # restaurants = ['carat-fine-indian-cuisine', 'marcos-oyster-bar-and-grill', 'ebeneezers-kebabs-and-pizzeria-8847']
-    # date_wanted = "2024-06-30"
-    # seats = "2"
-    # time_wanted = "6:00 PM"
-    # period_wanted = "Dinner"
-    # reservation_type = "Table"
-    # restaurant_link = f"https://resy.com/cities/hong-kong/venues/{restaurants[1]}?date={date_wanted}&seats={seats}"
 
     date_wanted = args.date
     seats = args.seats
@@ -184,15 +162,12 @@ def main():
                 print(message)
                 
                 page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
-                # breakpoint()
                 random_delay(2, 5)
                 login_to_resy(page, email, password)
                 message = "Logged in successfully."
                 logging.info(message)
                 print(message)
                 random_delay(2, 5)
-                # breakpoint()
-
                 page.goto(restaurant_link, wait_until='domcontentloaded')
                 page.wait_for_timeout(20000)
                 page.evaluate("() => document.fonts.ready")

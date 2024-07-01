@@ -170,7 +170,7 @@ class ResyBotv1Frame(ttk.Frame):
 		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
 		periodentry['values'] = [period for period in PERIOD_LIST]
 		periodentry.current(0)
-		reservationentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
+		reservationentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=30)
 		reservationentry['values'] = [reservation for reservation in RESERVATION_LIST]
 		reservationentry.current(0)
 		closeButton = CloseButton(self)
