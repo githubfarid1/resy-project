@@ -1,0 +1,1 @@
+["Bar", "Bar Counter", "Bar Mutsumi", "Bar Seat", "counter", "Dining Room", "High Top", "Kitchen Counter", "Omakase Bar", "Patio", "Side Table (Not Sushi Bar)", "Side table(not bar)", "Street Seating", "SUSHI COUNTER", "Sushi Counter", "Table", "Table (Not Bar)", "WHISKY ROOM"]

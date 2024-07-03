@@ -13,7 +13,7 @@ from subprocess import Popen, check_call
 import git
 import warnings
 import shutil
-from settings import PYTHON_EXE, RESERVATION_LIST, PERIOD_LIST
+from settings import PYTHON_EXE
 from tktimepicker import SpinTimePickerOld
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -30,13 +30,6 @@ if platform == "linux" or platform == "linux2":
 elif platform == "win32":
 	from subprocess import CREATE_NEW_CONSOLE
 import json
-
-# def chromeSetup():
-#     if platform == "linux" or platform == "linux2":
-#         CHROME = "google-chrome"
-#     elif platform == "win32":
-#         CHROME = s.CHROME_EXE
-#     Popen([CHROME, "chrome://settings/","--user-data-dir={}".format(s.CHROME_USER_DATA), "--profile-directory={}".format(s.CHROME_PROFILE)])
 
 class Window(Tk):
 	def __init__(self) -> None:
@@ -112,6 +105,9 @@ class MainFrame(ttk.Frame):
 		
 		titleLabel = TitleLabel(self, 'Main Menu')
 		resybotv1Button = FrameButton(self, window, text="Resy Bot v1", class_frame=ResyBotv1Frame)
+		reservationlistButton = FrameButton(self, window, text="Add Reservation Type", class_frame=AddReservationFrame)
+		periodlistButton = FrameButton(self, window, text="Add Period", class_frame=AddPeriodFrame)
+
 		# extractButton = FrameButton(self, window, text="Extract PDF Diagram", class_frame=ExtractPdfFrame)
 		# graburlButton = FrameButton(self, window, text="Grab URLs", class_frame=GrabUrlsFrame)
 		# graburlVendorButton = FrameButton(self, window, text="Grab URLs By Vendor", class_frame=GrabUrlsVendorFrame)
@@ -123,15 +119,145 @@ class MainFrame(ttk.Frame):
 		# # # layout
 		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		resybotv1Button.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		reservationlistButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		periodlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+
 		# extractButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# graburlButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# graburlVendorButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# pdfDownloadButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# graburlVendor2Button.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# pdfDownload2Button.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+
+class AddReservationFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("reservationlist.json", "r")
+		listvalue = json.load(file)
+		tmplist = [value for value in listvalue]
+		setlist = set(tmplist)
+		RESERVATION_LIST = sorted(list(setlist), key=str.casefold)
+
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		titleLabel = TitleLabel(self, text="Add Reservation Type")
+		valuentry = Entry(self, width=80)
+		dlist = StringVar(value=RESERVATION_LIST)
+		self.valueslist = Listbox(self, width=80, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(entry=valuentry, list=self.valueslist))
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.savelist(list=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		valuentry.grid(column = 0, row = 1, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		self.valueslist.grid(column = 0, row = 2, sticky=(W))
+		saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		closeButton.grid(column = 0, row = 8, sticky = (E))
+	def removeValue(self, event):
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
+		self.valueslist.delete(selection)
+		
+
+	def savelist(self, **kwargs):
+		with open("reservationlist.json", "w") as final:
+			json.dump(kwargs['list'].get(0, END), final)
+		messagebox.showinfo("Message box","Reservation List saved..")
+
+	def addlist(self, **kwargs):
+		kwargs['list'].insert(0, kwargs['entry'].get())
+		kwargs['entry'].delete(0, END)
+		messagebox.showinfo("Message box","New Reservation added..")
+
+class AddPeriodFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("periodlist.json", "r")
+		listvalue = json.load(file)
+		tmplist = [value for value in listvalue]
+		setlist = set(tmplist)
+		PERIOD_LIST = sorted(list(setlist), key=str.casefold)
+
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		titleLabel = TitleLabel(self, text="Add Period")
+		valuentry = Entry(self, width=80)
+		dlist = StringVar(value=PERIOD_LIST)
+		self.valueslist = Listbox(self, width=80, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(entry=valuentry, list=self.valueslist))
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.savelist(list=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		valuentry.grid(column = 0, row = 1, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		self.valueslist.grid(column = 0, row = 2, sticky=(W))
+		saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		closeButton.grid(column = 0, row = 8, sticky = (E))
+	def removeValue(self, event):
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
+		self.valueslist.delete(selection)
+		
+
+	def savelist(self, **kwargs):
+		with open("periodlist.json", "w") as final:
+			json.dump(kwargs['list'].get(0, END), final)
+		messagebox.showinfo("Message box","Period List saved..")
+
+	def addlist(self, **kwargs):
+		kwargs['list'].insert(0, kwargs['entry'].get())
+		kwargs['entry'].delete(0, END)
+		messagebox.showinfo("Message box","New Period added..")
+
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
 		super().__init__(window)
+		file = open("reservationlist.json", "r")
+		listvalue = json.load(file)
+		tmplist = [value for value in listvalue]
+		setlist = set(tmplist)
+		RESERVATION_LIST = sorted(list(setlist), key=str.casefold)
+
+		file = open("periodlist.json", "r")
+		listvalue = json.load(file)
+		tmplist = [value for value in listvalue]
+		setlist = set(tmplist)
+		PERIOD_LIST = sorted(list(setlist), key=str.casefold)
+
 		# configure
 		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
