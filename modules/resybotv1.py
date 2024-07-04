@@ -55,14 +55,16 @@ def random_delay(min_seconds, max_seconds):
 def reserve_restaurant(page, selected_reservation):
     """Reserve the restaurant with improved error handling and explicit waits."""
     try:
+        # breakpoint()
         selected_reservation.click()
         frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
         frame = frame_element.content_frame()
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
+        # time.sleep(2)
         for i in range(5):
             page.mouse.wheel(0, 15000)
-            time.sleep(2)        
-
+            time.sleep(1)        
+        # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(5)
         if frame.query_selector('.StripeForm__header'):
@@ -168,8 +170,9 @@ def main():
                 logging.info(message)
                 print(message)
                 random_delay(2, 5)
+                # breakpoint()
                 page.goto(restaurant_link, wait_until='domcontentloaded')
-                page.wait_for_timeout(20000)
+                # page.wait_for_timeout(20000)
                 page.evaluate("() => document.fonts.ready")
                 random_delay(2, 5)
                 # page.screenshot(path="debugging_photos/screenshot1.png", timeout=120000)
@@ -185,6 +188,7 @@ def main():
                     input(" ".join([message, CLOSE_MESSAGE]))
                     sys.exit()
                 else:
+                    # breakpoint()
                     menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
                     if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()

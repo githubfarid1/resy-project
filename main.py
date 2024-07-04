@@ -31,6 +31,11 @@ elif platform == "win32":
 	from subprocess import CREATE_NEW_CONSOLE
 import json
 
+def savejson(filename, list):
+	with open(filename, "w") as final:
+		json.dump(list.get(0, END), final)
+
+
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
@@ -105,8 +110,8 @@ class MainFrame(ttk.Frame):
 		
 		titleLabel = TitleLabel(self, 'Main Menu')
 		resybotv1Button = FrameButton(self, window, text="Resy Bot v1", class_frame=ResyBotv1Frame)
-		reservationlistButton = FrameButton(self, window, text="Add Reservation Type", class_frame=AddReservationFrame)
-		periodlistButton = FrameButton(self, window, text="Add Period", class_frame=AddPeriodFrame)
+		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
+		periodlistButton = FrameButton(self, window, text="Update Period", class_frame=AddPeriodFrame)
 
 		# extractButton = FrameButton(self, window, text="Extract PDF Diagram", class_frame=ExtractPdfFrame)
 		# graburlButton = FrameButton(self, window, text="Grab URLs", class_frame=GrabUrlsFrame)
@@ -154,7 +159,7 @@ class AddReservationFrame(ttk.Frame):
 		self.rowconfigure(6, weight=1)
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
-		titleLabel = TitleLabel(self, text="Add Reservation Type")
+		titleLabel = TitleLabel(self, text="Update Reservation Type")
 		valuentry = Entry(self, width=80)
 		dlist = StringVar(value=RESERVATION_LIST)
 		self.valueslist = Listbox(self, width=80, height=10, listvariable=dlist)
@@ -167,14 +172,14 @@ class AddReservationFrame(ttk.Frame):
 		valuentry.grid(column = 0, row = 1, sticky=(W))
 		addButton.grid(column = 0, row = 1, sticky = (E))
 		self.valueslist.grid(column = 0, row = 2, sticky=(W))
-		saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
 		closeButton.grid(column = 0, row = 8, sticky = (E))
 	def removeValue(self, event):
 		selection = self.valueslist.curselection()
 		for i in self.valueslist.curselection():
 				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
 		self.valueslist.delete(selection)
-		
+		savejson(filename="reservationlist.json", list=self.valueslist)
 
 	def savelist(self, **kwargs):
 		with open("reservationlist.json", "w") as final:
@@ -184,6 +189,7 @@ class AddReservationFrame(ttk.Frame):
 	def addlist(self, **kwargs):
 		kwargs['list'].insert(0, kwargs['entry'].get())
 		kwargs['entry'].delete(0, END)
+		savejson(filename="reservationlist.json", list=kwargs['list'])
 		messagebox.showinfo("Message box","New Reservation added..")
 
 class AddPeriodFrame(ttk.Frame):
@@ -211,7 +217,7 @@ class AddPeriodFrame(ttk.Frame):
 		self.rowconfigure(6, weight=1)
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
-		titleLabel = TitleLabel(self, text="Add Period")
+		titleLabel = TitleLabel(self, text="Update Period")
 		valuentry = Entry(self, width=80)
 		dlist = StringVar(value=PERIOD_LIST)
 		self.valueslist = Listbox(self, width=80, height=10, listvariable=dlist)
@@ -224,14 +230,15 @@ class AddPeriodFrame(ttk.Frame):
 		valuentry.grid(column = 0, row = 1, sticky=(W))
 		addButton.grid(column = 0, row = 1, sticky = (E))
 		self.valueslist.grid(column = 0, row = 2, sticky=(W))
-		saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
 		closeButton.grid(column = 0, row = 8, sticky = (E))
+	
 	def removeValue(self, event):
 		selection = self.valueslist.curselection()
 		for i in self.valueslist.curselection():
 				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
 		self.valueslist.delete(selection)
-		
+		savejson(filename="periodlist.json", list=self.valueslist)	
 
 	def savelist(self, **kwargs):
 		with open("periodlist.json", "w") as final:
@@ -241,6 +248,7 @@ class AddPeriodFrame(ttk.Frame):
 	def addlist(self, **kwargs):
 		kwargs['list'].insert(0, kwargs['entry'].get())
 		kwargs['entry'].delete(0, END)
+		savejson(filename="periodlist.json", list=kwargs['list'])
 		messagebox.showinfo("Message box","New Period added..")
 
 class ResyBotv1Frame(ttk.Frame):
