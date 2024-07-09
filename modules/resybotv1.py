@@ -11,18 +11,24 @@ import logging
 import re
 import sys
 import argparse
+from playwright_recaptcha import recaptchav2
+# sys.path.append(r"D:\dev\python\resy-project\ffmpeg\bin")
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 from settings import CLOSE_MESSAGE
-
 load_dotenv('settings.env')
 email = os.getenv('RESY_EMAIL')
 password = os.getenv('RESY_PASSWORD')
 # PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
 headless = True if os.getenv('HEADLESS') == 'yes' else False
 # headless = True if HEADLESS == 'yes' else False
+ccnumber = os.getenv('CCNUMBER')
+cccvv = os.getenv('CCCVV')
+ccexpiry = os.getenv('CCEXPIRY')
+cczipcode = os.getenv('CCZIPCODE')
+cccountry = os.getenv('CCCOUNTRY')
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
 def login_to_resy(page, email, password):
@@ -59,20 +65,42 @@ def reserve_restaurant(page, selected_reservation):
         selected_reservation.click()
         frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
         frame = frame_element.content_frame()
-        frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
         # time.sleep(2)
         for i in range(5):
             page.mouse.wheel(0, 15000)
             time.sleep(1)        
         # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+        frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(5)
         if frame.query_selector('.StripeForm__header'):
-            message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
-            logging.info(message)
-            input(" ".join([message, CLOSE_MESSAGE]))
-            sys.exit()
-
+            frame_element = frame.wait_for_selector('iframe[title="Secure payment input frame"]', timeout=10000)
+            frame = frame_element.content_frame()
+            frame.fill('input[id="Field-numberInput"]', ccnumber)
+            frame.fill('input[id="Field-expiryInput"]', ccexpiry)
+            frame.fill('input[id="Field-cvcInput"]', cccvv)
+            frame.select_option('select#Field-countryInput', value=cccountry)
+            frame.fill('input[id="Field-postalCodeInput"]', cczipcode)
+            # frame_element = frame.wait_for_selector('iframe[title="reCAPTCHA"]', timeout=10000)
+            # breakpoint()
+            with recaptchav2.SyncSolver(page) as solver:
+                token = solver.solve_recaptcha(wait=True)
+                # print(token)                        
+            # breakpoint()
+            time.sleep(2)
+            for i in range(5):
+                page.mouse.wheel(0, 15000)
+                time.sleep(1)        
+            frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
+            frame = frame_element.content_frame()
+            frame.wait_for_selector('[data-test-id="StripeAddCardForm-submit-button"]', timeout=5000)
+            frame.query_selector('[data-test-id="StripeAddCardForm-submit-button"]').click()
+            
+            # message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
+            # logging.info(message)
+            # input(" ".join([message, CLOSE_MESSAGE]))
+            # sys.exit()
+        frame.wait_for_selector('.ConfirmationPage__header', timeout=120000)
         confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
         message1 = f"Reservation confirmation message: {confirmation_message}"
         message2 = "Reservation confirmed."
@@ -119,7 +147,7 @@ def main():
         # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
         # More user agents can be added here
     ]
-    
+    chrome_user_data = r"D:\dev\python\resy-project\chrome_profiles"
     while True:
         try:
             user_agent = random.choice(user_agents)
@@ -133,28 +161,43 @@ def main():
                 wargs.append('--disable-popup-blocking')
                 wargs.append('--disable-web-security')
                 wargs.append('--start-maximized')
+                # wargs.append("user-data-dir={}".format(chrome_user_data))
+                # wargs.append("profile-directory={}".format("default"))
 
 
-                browser =  pr.chromium.launch(headless=headless, args=wargs)
+                # browser =  pr.chromium.launch(headless=headless, args=wargs)
+                # breakpoint()
+                browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
+                        headless=headless, 
+                        args=wargs, 
+                        user_agent=user_agent,
+                        permissions=['geolocation', 'notifications'],
+                        java_script_enabled=True,
+                        no_viewport=True
+                        )
+
                 proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
+                
+                # context = browser.new_context(
+                #     user_agent=user_agent,
+                #     # viewport={'width': random.randint(1200, 1920), 'height': random.randint(900, 1080)},
+                #     # viewport={'width': 1920, 'height': 1080},
+                #     permissions=['geolocation', 'notifications'],
+                #     java_script_enabled=True,
+                #     no_viewport=True,
+                #     # bypass_csp=True,
+                #     # locale='US_en',
+                #     # geolocation=False,
+                #     #proxy = {
+                #         #'server': proxy_server
+                #     #}
+                # )
 
-                context = browser.new_context(
-                    user_agent=user_agent,
-                    # viewport={'width': random.randint(1200, 1920), 'height': random.randint(900, 1080)},
-                    # viewport={'width': 1920, 'height': 1080},
-                    permissions=['geolocation', 'notifications'],
-                    java_script_enabled=True,
-                    no_viewport=True,
-                    # bypass_csp=True,
-                    # locale='US_en',
-                    # geolocation=False,
-                    #proxy = {
-                        #'server': proxy_server
-                    #}
-                )
-                page = context.new_page()
+                # breakpoint()
+                # page = context.new_page()
+                page = browser.pages[0]
                 stealth_sync(page)
-                            
+                                
                 page.on("console", lambda msg: logging.debug(f"PAGE LOG: {msg.text}"))
                 page.on("pageerror", lambda msg: logging.error(f"PAGE ERROR: {msg}"))
                 page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
@@ -165,10 +208,13 @@ def main():
                 
                 page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
                 random_delay(2, 5)
-                login_to_resy(page, email, password)
-                message = "Logged in successfully."
-                logging.info(message)
-                print(message)
+                # breakpoint()
+                if  page.query_selector('button.Button--login'):
+                    login_to_resy(page, email, password)
+                    message = "Logged in successfully."
+                    logging.info(message)
+                    print(message)
+                
                 random_delay(2, 5)
                 # breakpoint()
                 page.goto(restaurant_link, wait_until='domcontentloaded')

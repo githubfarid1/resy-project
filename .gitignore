@@ -163,3 +163,5 @@ cython_debug/
 settings.env
 periodlist.json
 reservationlist.json
+chrome_profiles/
+ffmpeg/
