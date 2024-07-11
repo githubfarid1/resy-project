@@ -13,7 +13,7 @@ from subprocess import Popen, check_call
 import git
 import warnings
 import shutil
-from settings import PYTHON_EXE
+from settings import PYTHON_EXE, CHROME_USER_DATA
 from tktimepicker import SpinTimePickerOld
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -136,6 +136,7 @@ class MainFrame(ttk.Frame):
 		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		periodlistButton = FrameButton(self, window, text="Update Period", class_frame=AddPeriodFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
+		setupChromiumButton = FrameButton(self, window, text="Setup Chromium Profile", class_frame=SetupChromiumFrame)
 
 		# extractButton = FrameButton(self, window, text="Extract PDF Diagram", class_frame=ExtractPdfFrame)
 		# graburlButton = FrameButton(self, window, text="Grab URLs", class_frame=GrabUrlsFrame)
@@ -151,7 +152,7 @@ class MainFrame(ttk.Frame):
 		reservationlistButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		periodlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		chromiumProfileButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-
+		setupChromiumButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 
 		# extractButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# graburlButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
@@ -334,8 +335,11 @@ class ChromiumProfileFrame(ttk.Frame):
 			if dl['profilename'] != strselect:
 				tmplist.append(dl)
 		self.profilelist = tmplist.copy()
-		savejson(filename="profilelist.json", valuelist=self.profilelist)	
-
+		savejson(filename="profilelist.json", valuelist=self.profilelist)
+		try:	
+			shutil.rmtree(CHROME_USER_DATA + os.path.sep + strselect)
+		except:
+			pass
 	def addlist(self, **kwargs):
 		self.profilelist.append({"profilename": kwargs['profilename'].get(), "email": kwargs['email'].get(), "password": kwargs['password'].get()})
 		if savejson(filename="profilelist.json", valuelist=self.profilelist, value=kwargs['profilename'].get()):
@@ -349,6 +353,51 @@ class ChromiumProfileFrame(ttk.Frame):
 		kwargs['password'].delete(0, END)
 		
 		# messagebox.showinfo("Message box","New Period added..")
+
+class SetupChromiumFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+
+		self.columnconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+		self.columnconfigure(2, weight=1)
+		# self.columnconfigure(3, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+				
+		titleLabel = TitleLabel(self, 'Chromium Profiles')
+		closeButton = CloseButton(self)
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileList = []
+		for text in [value['profilename'] for value in profilelisttmp]:
+			profileList.append(ttk.Button(self, text=text, command=lambda pro=text:self.chromeTester(pro)))
+
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=4)
+		closeButton.grid(column = 0, row = 6, sticky = (E, N, S), columnspan=4)
+
+		colnum = 0
+		rownum = 1
+		for profile in profileList:
+			if colnum == 3:
+				colnum = 0
+				rownum += 1
+			profile.grid(column = colnum, row = rownum, sticky=(W, E, N, S), padx=15, pady=5)
+			colnum += 1
+
+	def chromeTester(self, profile):
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
+		run_module(comlist=[PYLOC, "modules/chromium_setup.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
+
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:

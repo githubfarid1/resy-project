@@ -17,7 +17,7 @@ from playwright_recaptcha import recaptchav2
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA
 
 load_dotenv('settings.env')
 # email = os.getenv('RESY_EMAIL')
@@ -149,7 +149,7 @@ def main():
         # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
         # More user agents can be added here
     ]
-    chrome_user_data = f"D:\\dev\\python\\resy-project\\chrome_profiles\\{chprofile}"
+    chrome_user_data = f"{CHROME_USER_DATA}\\{chprofile}"
     while True:
         try:
             user_agent = random.choice(user_agents)
