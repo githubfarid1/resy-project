@@ -18,17 +18,18 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 from settings import CLOSE_MESSAGE
+
 load_dotenv('settings.env')
-email = os.getenv('RESY_EMAIL')
-password = os.getenv('RESY_PASSWORD')
+# email = os.getenv('RESY_EMAIL')
+# password = os.getenv('RESY_PASSWORD')
 # PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
 headless = True if os.getenv('HEADLESS') == 'yes' else False
 # headless = True if HEADLESS == 'yes' else False
-ccnumber = os.getenv('CCNUMBER')
-cccvv = os.getenv('CCCVV')
-ccexpiry = os.getenv('CCEXPIRY')
-cczipcode = os.getenv('CCZIPCODE')
-cccountry = os.getenv('CCCOUNTRY')
+# ccnumber = os.getenv('CCNUMBER')
+# cccvv = os.getenv('CCCVV')
+# ccexpiry = os.getenv('CCEXPIRY')
+# cczipcode = os.getenv('CCZIPCODE')
+# cccountry = os.getenv('CCCOUNTRY')
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
 def login_to_resy(page, email, password):
@@ -68,38 +69,34 @@ def reserve_restaurant(page, selected_reservation):
         # time.sleep(2)
         for i in range(5):
             page.mouse.wheel(0, 15000)
-            time.sleep(1)        
+            time.sleep(1)     
         # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(5)
         if frame.query_selector('.StripeForm__header'):
-            frame_element = frame.wait_for_selector('iframe[title="Secure payment input frame"]', timeout=10000)
-            frame = frame_element.content_frame()
-            frame.fill('input[id="Field-numberInput"]', ccnumber)
-            frame.fill('input[id="Field-expiryInput"]', ccexpiry)
-            frame.fill('input[id="Field-cvcInput"]', cccvv)
-            frame.select_option('select#Field-countryInput', value=cccountry)
-            frame.fill('input[id="Field-postalCodeInput"]', cczipcode)
-            # frame_element = frame.wait_for_selector('iframe[title="reCAPTCHA"]', timeout=10000)
-            # breakpoint()
-            with recaptchav2.SyncSolver(page) as solver:
-                token = solver.solve_recaptcha(wait=True)
-                # print(token)                        
-            # breakpoint()
-            time.sleep(2)
-            for i in range(5):
-                page.mouse.wheel(0, 15000)
-                time.sleep(1)        
-            frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
-            frame = frame_element.content_frame()
-            frame.wait_for_selector('[data-test-id="StripeAddCardForm-submit-button"]', timeout=5000)
-            frame.query_selector('[data-test-id="StripeAddCardForm-submit-button"]').click()
+            # frame_element = frame.wait_for_selector('iframe[title="Secure payment input frame"]', timeout=10000)
+            # frame = frame_element.content_frame()
+            # frame.fill('input[id="Field-numberInput"]', ccnumber)
+            # frame.fill('input[id="Field-expiryInput"]', ccexpiry)
+            # frame.fill('input[id="Field-cvcInput"]', cccvv)
+            # frame.select_option('select#Field-countryInput', value=cccountry)
+            # frame.fill('input[id="Field-postalCodeInput"]', cczipcode)
+            # with recaptchav2.SyncSolver(page) as solver:
+            #     token = solver.solve_recaptcha(wait=True)
+            # time.sleep(2)
+            # for i in range(5):
+            #     page.mouse.wheel(0, 15000)
+            #     time.sleep(1)        
+            # frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
+            # frame = frame_element.content_frame()
+            # frame.wait_for_selector('[data-test-id="StripeAddCardForm-submit-button"]', timeout=5000)
+            # frame.query_selector('[data-test-id="StripeAddCardForm-submit-button"]').click()
             
-            # message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
-            # logging.info(message)
-            # input(" ".join([message, CLOSE_MESSAGE]))
-            # sys.exit()
+            message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
+            logging.info(message)
+            input(" ".join([message, CLOSE_MESSAGE]))
+            sys.exit()
         frame.wait_for_selector('.ConfirmationPage__header', timeout=120000)
         confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
         message1 = f"Reservation confirmation message: {confirmation_message}"
@@ -126,11 +123,13 @@ def main():
     parser.add_argument('-s', '--seats', type=str,help="Seats count")
     parser.add_argument('-p', '--period', type=str,help="period type")
     parser.add_argument('-r', '--reservation', type=str,help="Reservation type")
-
+    parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
+    parser.add_argument('-em', '--email', type=str,help="Resy Email")
+    parser.add_argument('-pw', '--password', type=str,help="Resy Password")
     args = parser.parse_args()
         
-    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
-        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password:
+        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password]', CLOSE_MESSAGE]))
         sys.exit()
 
     date_wanted = args.date
@@ -139,7 +138,10 @@ def main():
     period_wanted = args.period
     reservation_type = args.reservation
     restaurant_link = f"{args.url.split('?')[0]}?date={date_wanted}&seats={seats}"
-
+    chprofile = args.chprofile
+    email = args.email
+    password = args.password
+    # breakpoint()
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15",
@@ -147,7 +149,7 @@ def main():
         # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
         # More user agents can be added here
     ]
-    chrome_user_data = r"D:\dev\python\resy-project\chrome_profiles"
+    chrome_user_data = f"D:\\dev\\python\\resy-project\\chrome_profiles\\{chprofile}"
     while True:
         try:
             user_agent = random.choice(user_agents)
@@ -235,10 +237,20 @@ def main():
                     sys.exit()
                 else:
                     # breakpoint()
-                    menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
+                    
+                    page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
+                    time.sleep(1)
+                    # menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
+                    menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
+                    if not menu:
+                        message = f"No reservation available on {period_wanted}"
+                        logging.info(message)
+                        input(" ".join([message, CLOSE_MESSAGE]))
+                        sys.exit()
                     if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()="{reservation_type}"]]')
+                    # breakpoint()
+                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()[contains(normalize-space(),"{reservation_type}")]]]')
                     if selected_reservation:
                         logging.info(
                             f"Reservation available at {time_wanted} for {seats} people {reservation_type}")
@@ -253,7 +265,9 @@ def main():
                 break  
         except Exception as e:
             # Show all error details in log file
-            logging.exception("An error occurred")
+            message = "An error occurred"
+            print(message)
+            logging.exception(message)
             # sys.exit()
             continue
             # return e
