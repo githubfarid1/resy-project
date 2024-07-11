@@ -15,6 +15,25 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 from settings import CLOSE_MESSAGE, CHROME_USER_DATA
+def login_to_resy(page, email, password):
+    """Login to Resy with enhanced stability and error handling."""
+    try:
+        page.wait_for_selector('.AnnouncementModal__icon-close', timeout=5000)
+        page.click('.AnnouncementModal__icon-close')
+    except Exception:
+        logging.info("No announcement modal to close.")
+    # breakpoint()
+    page.click("text=Log in", timeout=30000)
+    page.click("text=Use Email and Password instead", timeout=30000)
+
+    page.fill('input[name="email"]', email)
+    page.fill('input[name="password"]', password)
+    
+    page.click('[name="login_form"] button', timeout=10000)
+    page.evaluate("() => document.fonts.ready")
+
+def random_delay(min_seconds, max_seconds):
+    time.sleep(random.uniform(min_seconds, max_seconds))
 
 def main():
     # breakpoint()
@@ -59,6 +78,14 @@ def main():
             page = browser.pages[0]
             stealth_sync(page)
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
+            random_delay(2, 5)
+            # breakpoint()
+            if  page.query_selector('button.Button--login'):
+                login_to_resy(page, args.email, args.password)
+                message = "Logged in successfully."
+                logging.info(message)
+                print(message)
+
             input("Press any key when finished setting up Browser..")
             error = False
             sys.exit()
