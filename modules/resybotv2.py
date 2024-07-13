@@ -17,18 +17,8 @@ from playwright_recaptcha import recaptchav2
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settingsv1 import CLOSE_MESSAGE, CHROME_USER_DATA
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA
 load_dotenv('settings.env')
-email = os.getenv('RESY_EMAIL')
-password = os.getenv('RESY_PASSWORD')
-# PW_TEST_SCREENSHOT_NO_FONTS_READY = 1
-headless = True if os.getenv('HEADLESS') == 'yes' else False
-# headless = True if HEADLESS == 'yes' else False
-# ccnumber = os.getenv('CCNUMBER')
-# cccvv = os.getenv('CCCVV')
-# ccexpiry = os.getenv('CCEXPIRY')
-# cczipcode = os.getenv('CCZIPCODE')
-# cccountry = os.getenv('CCCOUNTRY')
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
 def login_to_resy(page, email, password):
@@ -44,16 +34,9 @@ def login_to_resy(page, email, password):
 
     page.fill('input[name="email"]', email)
     page.fill('input[name="password"]', password)
-    # breakpoint()
-    # page.request.post("https://api.resy.com/3/auth/password", headers=headers, data=payload,)
     
     page.click('[name="login_form"] button', timeout=10000)
-    # time.sleep(10)
-    # breakpoint()
-    # page.evaluate("document.querySelector('[name=\"login_form\"] button').click()")
     page.evaluate("() => document.fonts.ready")
-    # page.screenshot(path='debugging_photos/screenshot2.png')
-    # logging.info("Logged in and screenshot taken.")
 
 def random_delay(min_seconds, max_seconds):
     time.sleep(random.uniform(min_seconds, max_seconds))
@@ -75,23 +58,6 @@ def reserve_restaurant(page, selected_reservation):
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(5)
         if frame.query_selector('.StripeForm__header'):
-            # frame_element = frame.wait_for_selector('iframe[title="Secure payment input frame"]', timeout=10000)
-            # frame = frame_element.content_frame()
-            # frame.fill('input[id="Field-numberInput"]', ccnumber)
-            # frame.fill('input[id="Field-expiryInput"]', ccexpiry)
-            # frame.fill('input[id="Field-cvcInput"]', cccvv)
-            # frame.select_option('select#Field-countryInput', value=cccountry)
-            # frame.fill('input[id="Field-postalCodeInput"]', cczipcode)
-            # with recaptchav2.SyncSolver(page) as solver:
-            #     token = solver.solve_recaptcha(wait=True)
-            # time.sleep(2)
-            # for i in range(5):
-            #     page.mouse.wheel(0, 15000)
-            #     time.sleep(1)        
-            # frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
-            # frame = frame_element.content_frame()
-            # frame.wait_for_selector('[data-test-id="StripeAddCardForm-submit-button"]', timeout=5000)
-            # frame.query_selector('[data-test-id="StripeAddCardForm-submit-button"]').click()
             print("Failed")
             message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
             logging.info(message)
@@ -106,14 +72,11 @@ def reserve_restaurant(page, selected_reservation):
         logging.info(message2)
         input(" ".join([message1, message2, CLOSE_MESSAGE]))
         sys.exit()
-        # page.evaluate("() => document.fonts.ready")
-        # page.screenshot(path='debugging_photos/screenshot3.png')
     except Exception as e:
         print("Failed")
         message = "Failed to complete reservation"
         logging.exception(message)
         input(" ".join([message, CLOSE_MESSAGE]))
-        # breakpoint()
         sys.exit()
 
 
@@ -125,10 +88,14 @@ def main():
     parser.add_argument('-s', '--seats', type=str,help="Seats count")
     parser.add_argument('-p', '--period', type=str,help="period type")
     parser.add_argument('-r', '--reservation', type=str,help="Reservation type")
+    parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
+    parser.add_argument('-em', '--email', type=str,help="Resy Email")
+    parser.add_argument('-pw', '--password', type=str,help="Resy Password")
+    parser.add_argument('-hl', '--headless', type=str,help="Headless Mode")
     args = parser.parse_args()
         
-    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation:
-        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password or not args.headless:
+        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
         sys.exit()
     date_wanted = args.date
     seats = args.seats
@@ -136,6 +103,11 @@ def main():
     period_wanted = args.period
     reservation_type = args.reservation
     restaurant_link = f"{args.url.split('?')[0]}?date={date_wanted}&seats={seats}"
+    chprofile = args.chprofile
+    email = args.email
+    password = args.password
+    headless=args.headless
+    headless = True if headless == 'Yes' else False
 
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -144,6 +116,7 @@ def main():
         # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
         # More user agents can be added here
     ]
+    chrome_user_data = f"{CHROME_USER_DATA}\\{chprofile}"
     while True:
         try:
             user_agent = random.choice(user_agents)
@@ -159,36 +132,24 @@ def main():
                 wargs.append('--start-maximized')
                 # wargs.append("user-data-dir={}".format(chrome_user_data))
                 # wargs.append("profile-directory={}".format("default"))
+
+
                 # browser =  pr.chromium.launch(headless=headless, args=wargs)
                 # breakpoint()
-                browser =  pr.chromium.launch_persistent_context(user_data_dir=CHROME_USER_DATA, 
+                proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
+                browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
                         headless=headless, 
                         args=wargs, 
                         user_agent=user_agent,
                         permissions=['geolocation', 'notifications'],
                         java_script_enabled=True,
-                        no_viewport=True
+                        no_viewport=True,
+                        # geolocation=False,
+                        # locale='US_en',
+                        # bypass_csp=True,
+                        # proxy={'server': proxy_server}
                         )
 
-                proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
-                
-                # context = browser.new_context(
-                #     user_agent=user_agent,
-                #     # viewport={'width': random.randint(1200, 1920), 'height': random.randint(900, 1080)},
-                #     # viewport={'width': 1920, 'height': 1080},
-                #     permissions=['geolocation', 'notifications'],
-                #     java_script_enabled=True,
-                #     no_viewport=True,
-                #     # bypass_csp=True,
-                #     # locale='US_en',
-                #     # geolocation=False,
-                #     #proxy = {
-                #         #'server': proxy_server
-                #     #}
-                # )
-
-                # breakpoint()
-                # page = context.new_page()
                 page = browser.pages[0]
                 stealth_sync(page)
                                 
@@ -196,7 +157,7 @@ def main():
                 page.on("pageerror", lambda msg: logging.error(f"PAGE ERROR: {msg}"))
                 page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
                 page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
-                message = f"Bot is running..."
+                message = f"Bot is running... [{chprofile}]"
                 logging.info(message)
                 print(message)
                 
@@ -218,10 +179,6 @@ def main():
                 page.evaluate("() => document.fonts.ready")
                 print("Passed")
                 random_delay(2, 5)
-                # page.screenshot(path="debugging_photos/screenshot1.png", timeout=120000)
-                # breakpoint()
-                # page.query_selector('//*[@id="open-but-unavailable-without-future"]')
-                # page.frame_locator('#__privateStripeMetricsController9460').locator
                 if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                     page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
                 # breakpoint()
@@ -234,7 +191,6 @@ def main():
                     print(f"Looking for {period_wanted}...", end=" ", flush=True)
                     page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
                     time.sleep(1)
-                    # menu = page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]', timeout=30000)
                     menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
                     if not menu:
                         print("Not Found")
