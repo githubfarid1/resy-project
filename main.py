@@ -433,8 +433,8 @@ class ResyBotv1Frame(ttk.Frame):
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
 		self.rowconfigure(9, weight=1)
-
-
+		self.rowconfigure(10, weight=1)
+		self.rowconfigure(11, weight=1)
 		
 		# populate
 		titleLabel = TitleLabel(self, text="Resy Bot v1")
@@ -445,6 +445,7 @@ class ResyBotv1Frame(ttk.Frame):
 		periodlabel = Label(self, text="Period: ")
 		reservationlabel = Label(self, text="Reservation Type: ")
 		chprofilelabel = Label(self, text="Chromium Profile: ")
+		headlesslabel = Label(self, text="Headless Mode: ")
 
 		urlentry = Entry(self, width=80)
 		urlentry.insert(0, "https://resy.com/cities/new-york-ny/venues/zensushi-omakase")
@@ -454,7 +455,7 @@ class ResyBotv1Frame(ttk.Frame):
 		timeentry.addMinutes()
 		timeentry.addPeriod()
 		defseat = StringVar(value=2)
-		seatsentry = Spinbox(self, from_=1, to=50, textvariable=defseat, state="readonly")
+		seatsentry = Spinbox(self, from_=1, to=100, textvariable=defseat, state="readonly", width=5)
 		seatsentry.insert(0,2)
 		periodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly")
 		periodentry['values'] = [period for period in PERIOD_LIST]
@@ -465,9 +466,12 @@ class ResyBotv1Frame(ttk.Frame):
 		chprofileentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=30)
 		chprofileentry['values'] = [profile for profile in PROFILE_LIST]
 		chprofileentry.current(0)
+		headlessentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		headlessentry['values'] = ['No','Yes']
+		headlessentry.current(0)
 
 		closeButton = CloseButton(self)
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry, profile=chprofileentry))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry, profile=chprofileentry, headless=headlessentry))
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -485,8 +489,11 @@ class ResyBotv1Frame(ttk.Frame):
 		reservationentry.grid(column = 0, row = 6, sticky=(E))
 		chprofilelabel.grid(column = 0, row = 7, sticky=(W))
 		chprofileentry.grid(column = 0, row = 7, sticky=(E))
-		runButton.grid(column = 0, row = 8, sticky = (E))
-		closeButton.grid(column = 0, row = 9, sticky = (E))
+		headlesslabel.grid(column = 0, row = 8, sticky=(W))
+		headlessentry.grid(column = 0, row = 8, sticky=(E))
+
+		runButton.grid(column = 0, row = 9, sticky = (E))
+		closeButton.grid(column = 0, row = 10, sticky = (E))
 
 	def run_process(self, **kwargs):
 		hour = str(kwargs['time'].hours())
@@ -500,7 +507,7 @@ class ResyBotv1Frame(ttk.Frame):
 		profile = kwargs['profile'].get().split("|")[0].strip()
 		email = kwargs['profile'].get().split("|")[1].strip()
 		password = kwargs['profile'].get().split("|")[2].strip()
-		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '{}'.format(kwargs['url'].get()), "-d", '{}'.format(kwargs['date'].get_date()), "-t", '{}'.format(formatted_time), "-s", '{}'.format(kwargs['seats'].get()), "-p", '{}'.format(kwargs['period'].get()), "-r", '{}'.format(kwargs['reservation'].get()), "-cp", profile, "-em", email, "-pw", password ])
+		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '{}'.format(kwargs['url'].get()), "-d", '{}'.format(kwargs['date'].get_date()), "-t", '{}'.format(formatted_time), "-s", '{}'.format(kwargs['seats'].get()), "-p", '{}'.format(kwargs['period'].get()), "-r", '{}'.format(kwargs['reservation'].get()), "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get() ) ])
 
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):

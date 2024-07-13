@@ -7,3 +7,4 @@ CHROME_USER_DATA = os.getcwd() + os.sep + "chrome_profiles"
 # RESY_PASSWORD='Upworktest1!'
 # HEADLESS='no'
 CLOSE_MESSAGE=" --> Press any key to close..."
+CHROME_EXE = r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'

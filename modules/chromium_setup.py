@@ -11,10 +11,11 @@ import logging
 import re
 import sys
 import argparse
+from subprocess import Popen, check_call
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE, CHROME_USER_DATA
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CHROME_EXE
 def login_to_resy(page, email, password):
     """Login to Resy with enhanced stability and error handling."""
     try:
@@ -66,6 +67,8 @@ def main():
             wargs.append('--disable-popup-blocking')
             wargs.append('--disable-web-security')
             wargs.append('--start-maximized')
+            # wargs.append('--disable-infobars')
+            # wargs.append('--disable-blink-features=AutomationControlled')
             browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
                     headless=False, 
                     args=wargs, 
@@ -79,14 +82,13 @@ def main():
             stealth_sync(page)
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
             random_delay(2, 5)
-            # breakpoint()
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
                 logging.info(message)
                 print(message)
-
-            input("Press any key when finished setting up Browser..")
+            Popen([CHROME_EXE, "https://resy.com","--user-data-dir={}".format(chrome_user_data), "--profile-directory=Default"])
+            # input("Press any key when finished setting up Browser..")
             error = False
             sys.exit()
             
