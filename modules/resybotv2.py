@@ -17,7 +17,7 @@ from playwright_recaptcha import recaptchav2
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE, CHROME_USER_DATA
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CONTINUE_MESSAGE
 load_dotenv('settings.env')
 logging.basicConfig(filename='bot.log', filemode='w', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(filename)s - %(lineno)d - %(message)s')
 
@@ -56,15 +56,19 @@ def reserve_restaurant(page, selected_reservation):
         # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
+        time.sleep(1)
+        if frame.query_selector('[data-test-id="order_summary_page-button-book"]'):
+            frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(5)
         if frame.query_selector('.StripeForm__header'):
             print("Failed")
             message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
             logging.info(message)
-            input(" ".join([message, CLOSE_MESSAGE]))
+            print(" ".join([message, CONTINUE_MESSAGE]))
+            raise
             sys.exit()
         print("Passed")
-        frame.wait_for_selector('.ConfirmationPage__header', timeout=120000)
+        frame.wait_for_selector('.ConfirmationPage__header', timeout=60000)
         confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
         message1 = f"Reservation confirmation message: {confirmation_message}"
         message2 = "Reservation confirmed."
@@ -76,9 +80,9 @@ def reserve_restaurant(page, selected_reservation):
         print("Failed")
         message = "Failed to complete reservation"
         logging.exception(message)
-        input(" ".join([message, CLOSE_MESSAGE]))
-        sys.exit()
-
+        print(" ".join([message, CONTINUE_MESSAGE]))
+        raise
+        # sys.exit()
 
 def main():
     parser = argparse.ArgumentParser(description="Resy Bot v1")
@@ -194,8 +198,9 @@ def main():
                 if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
                     message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
                     logging.info(message)
-                    input(" ".join([message, CLOSE_MESSAGE]))
-                    sys.exit()
+                    print(" ".join([message, CONTINUE_MESSAGE]))
+                    raise
+                    # sys.exit()
                 else:
                     print(f"Looking for {period_wanted}...", end=" ", flush=True)
                     page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
@@ -205,8 +210,9 @@ def main():
                         print("Not Found")
                         message = f"No reservation available on {period_wanted}"
                         logging.info(message)
-                        input(" ".join([message, CLOSE_MESSAGE]))
-                        sys.exit()
+                        print(" ".join([message, CONTINUE_MESSAGE]))
+                        raise
+                        # sys.exit()
                     print("Found")
                     if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
@@ -224,8 +230,9 @@ def main():
                         print("Not Found")
                         message = "No reservation available"
                         logging.info(message)
-                        input(" ".join([message, CLOSE_MESSAGE]))
-                        sys.exit()
+                        print(" ".join([message, CONTINUE_MESSAGE]))
+                        raise
+                        # sys.exit()
 
                 break  
         except Exception as e:
