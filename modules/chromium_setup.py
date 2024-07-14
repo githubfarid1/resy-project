@@ -87,7 +87,10 @@ def main():
                 message = "Logged in successfully."
                 logging.info(message)
                 print(message)
-            Popen([CHROME_EXE, "https://resy.com","--user-data-dir={}".format(chrome_user_data), "--profile-directory=Default"])
+                time.sleep(3)
+                browser.close()
+            # breakpoint()
+            # Popen([CHROME_EXE, "https://resy.com","--user-data-dir={}".format(chrome_user_data), "--profile-directory=Default"])
             # input("Press any key when finished setting up Browser..")
             error = False
             sys.exit()

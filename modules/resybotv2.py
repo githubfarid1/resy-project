@@ -123,6 +123,7 @@ def main():
             with sync_playwright() as pr:
                 wargs = []
                 # wargs.append('--enable-logging=stderr')
+                # list chromium arguments: https://peter.sh/experiments/chromium-command-line-switches/
                 wargs.append('--v=1')
                 wargs.append('--no-sandbox')
                 wargs.append('--enable-features=NetworkService,NetworkServiceInProcess')
@@ -130,6 +131,14 @@ def main():
                 wargs.append('--disable-popup-blocking')
                 wargs.append('--disable-web-security')
                 wargs.append('--start-maximized')
+
+                wargs.append('--disable-fetching-hints-at-navigation-start')
+                wargs.append('--force-first-run')
+                wargs.append('--content-shell-hide-toolbar')
+                wargs.append('--suppress-message-center-popups')
+                wargs.append('--no-first-run')
+                wargs.append('--force-show-update-menu-badge')
+                # wargs.append('--disable-blink-features=AutomationControlled')
                 # wargs.append("user-data-dir={}".format(chrome_user_data))
                 # wargs.append("profile-directory={}".format("default"))
 
@@ -203,7 +212,7 @@ def main():
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
                     # breakpoint()
                     print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
-                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[text()[contains(normalize-space(),"{reservation_type}")]]]')
+                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[normalize-space(text())="{reservation_type}"]]')
                     if selected_reservation:
                         print("Found")
                         message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"

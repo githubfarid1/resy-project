@@ -1,9 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-from functools import partial
-from tkinter import filedialog
 from tkinter import messagebox
-import tkinter
 from tkcalendar import Calendar, DateEntry
 from pathlib import Path
 import os
@@ -136,7 +133,7 @@ class MainFrame(ttk.Frame):
 		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		periodlistButton = FrameButton(self, window, text="Update Period", class_frame=AddPeriodFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
-		setupChromiumButton = FrameButton(self, window, text="Setup Chromium Profile", class_frame=SetupChromiumFrame)
+		setupChromiumButton = FrameButton(self, window, text="Chromium Profile Tester", class_frame=SetupChromiumFrame)
 
 
 		# # # layout
@@ -189,9 +186,11 @@ class AddReservationFrame(ttk.Frame):
 		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
 		closeButton.grid(column = 0, row = 8, sticky = (E))
 	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
 		selection = self.valueslist.curselection()
 		for i in self.valueslist.curselection():
-				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
+			messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
 		self.valueslist.delete(selection)
 		savejson(filename="reservationlist.json", valuelist=self.valueslist)
 
@@ -248,9 +247,11 @@ class AddPeriodFrame(ttk.Frame):
 		closeButton.grid(column = 0, row = 8, sticky = (E))
 	
 	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
 		selection = self.valueslist.curselection()
 		for i in self.valueslist.curselection():
-				messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
+			messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
 		self.valueslist.delete(selection)
 		savejson(filename="periodlist.json", valuelist=self.valueslist)	
 
@@ -312,6 +313,8 @@ class ChromiumProfileFrame(ttk.Frame):
 		closeButton.grid(column = 0, row = 8, sticky = (E))
 	
 	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
 		selection = self.valueslist.curselection()
 		for i in self.valueslist.curselection():
 			strselect = self.valueslist.get(i).split(" | ")[0]
