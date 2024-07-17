@@ -12,7 +12,6 @@ pyee
 python-dotenv
 requests
 smmap
-SpeechRecognition
 tenacity
 tkcalendar
 tkTimePicker
