@@ -54,6 +54,7 @@ def main():
         # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
         # More user agents can be added here
     ]
+    
     chrome_user_data = f"{CHROME_USER_DATA}\\{args.chprofile}"
     error = True
     try:
@@ -69,7 +70,7 @@ def main():
             wargs.append('--start-maximized')
             # wargs.append('--disable-infobars')
             # wargs.append('--disable-blink-features=AutomationControlled')
-            browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
+            browser =  pr.firefox.launch_persistent_context(user_data_dir=chrome_user_data, 
                     headless=False, 
                     args=wargs, 
                     user_agent=user_agent,
