@@ -94,8 +94,8 @@ def main():
                     #'server': proxy_server
                 #}
             )
-
-            page = context.pages[0]
+            page = context.new_page()
+            # page = context.pages[0]
             stealth_sync(page)
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
             random_delay(2, 5)
