@@ -11,7 +11,7 @@ import logging
 import re
 import sys
 import argparse
-from playwright_recaptcha import recaptchav2
+# from playwright_recaptcha import recaptchav2
 # sys.path.append(r"D:\dev\python\resy-project\ffmpeg\bin")
 
 current = os.path.dirname(os.path.realpath(__file__))
