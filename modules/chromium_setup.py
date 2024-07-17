@@ -70,7 +70,7 @@ def main():
             wargs.append('--start-maximized')
             # wargs.append('--disable-infobars')
             # wargs.append('--disable-blink-features=AutomationControlled')
-            browser =  pr.firefox.launch_persistent_context(user_data_dir=chrome_user_data, 
+            browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
                     headless=False, 
                     args=wargs, 
                     user_agent=user_agent,
