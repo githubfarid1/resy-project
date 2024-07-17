@@ -83,7 +83,7 @@ def main():
             stealth_sync(page)
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
             random_delay(2, 5)
-            breakpoint()
+            # breakpoint()
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
