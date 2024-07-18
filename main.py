@@ -85,12 +85,14 @@ class Window(Tk):
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.gitPull()
 
 	def gitPull(self):
 		git_dir = os.getcwd() 
 		g = git.cmd.Git(git_dir)
 		g.pull()		
-		messagebox.showinfo(title='Info', message='the scripts has updated..')
+		# messagebox.showinfo(title='Info', message='the scripts has updated..')
+		print("script updated")
 
 
 	def procexit(self):
@@ -129,7 +131,8 @@ class MainFrame(ttk.Frame):
   
 		
 		titleLabel = TitleLabel(self, 'Main Menu')
-		resybotv1Button = FrameButton(self, window, text="Resy Bot v2", class_frame=ResyBotv2Frame)
+		resybotv2Button = FrameButton(self, window, text="Resy Bot v2", class_frame=ResyBotv2Frame)
+		resybotv3Button = FrameButton(self, window, text="Resy Bot v3", class_frame=ResyBotv3Frame)
 		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		periodlistButton = FrameButton(self, window, text="Update Period", class_frame=AddPeriodFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
@@ -138,11 +141,12 @@ class MainFrame(ttk.Frame):
 
 		# # # layout
 		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		resybotv1Button.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		reservationlistButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		periodlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		chromiumProfileButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		setupChromiumButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		resybotv2Button.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		resybotv3Button.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		reservationlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		periodlistButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		chromiumProfileButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		setupChromiumButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 
 class AddReservationFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -386,6 +390,73 @@ class SetupChromiumFrame(ttk.Frame):
 		profilelisttmp = json.load(file)
 		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
 		run_module(comlist=[PYLOC, "modules/chromium_setup.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
+
+class ListCommandFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("commandlist.json", "r")
+		self.commandlist = json.load(file)
+		commandlist = ["{} | {} | {} | {} | {} | {}".format(str(value['baseurl']).split("/")[-1], value['date'], value['time'], value['seats'], value['period'], value['reservation_type'] )  for value in self.commandlist]
+		# setlist = set(tmplist)
+		# PROFILE_LIST = sorted(self.profilelist, key=str.casefold)
+		# breakpoint()
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		titleLabel = TitleLabel(self, text="List Bot's Command")
+
+		dlist = StringVar(value=commandlist)
+		self.valueslist = Listbox(self, width=120, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.savelist(valuelist=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		self.valueslist.grid(column = 0, row = 1, sticky=(W))
+		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		closeButton.grid(column = 0, row = 2, sticky = (E))
+	
+	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+			strselect = self.valueslist.get(i)
+			messagebox.showinfo("Message box", f"`{strselect}` deleted..")
+		self.valueslist.delete(selection)
+		tmplist = []
+		for dl in self.commandlist:
+			if "{} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['seats'], dl['period'], dl['reservation_type']) != strselect:
+				tmplist.append(dl)
+		self.commandlist = tmplist.copy()
+		savejson(filename="commandlist.json", valuelist=self.commandlist)
+
+	def addlist(self, **kwargs):
+		self.commandlist.append({"profilename": kwargs['profilename'].get(), "email": kwargs['email'].get(), "password": kwargs['password'].get()})
+		if savejson(filename="profilelist.json", valuelist=self.commandlist, value=kwargs['profilename'].get()):
+			kwargs['valuelist'].insert(0, f"{kwargs['profilename'].get()} | {kwargs['email'].get()} | {kwargs['password'].get()}")
+		else:
+			# breakpoint()
+			self.commandlist.pop()
+		
+		kwargs['profilename'].delete(0, END)
+		kwargs['email'].delete(0, END)
+		kwargs['password'].delete(0, END)
+		
+		# messagebox.showinfo("Message box","New Period added..")
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -651,7 +722,9 @@ class ResyBotv3Frame(ttk.Frame):
 		reservationentry.current(0)
 
 		closeButton = CloseButton(self)
-		runButton = ttk.Button(self, text='Save Command', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
+		saveButton = ttk.Button(self, text='Save Command', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
+		# listButton = ttk.Button(self, text='List Commands', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, period=periodentry, reservation=reservationentry))
+		listButton = FrameButton(self, window, text="List Commands", class_frame=ListCommandFrame)
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -668,7 +741,8 @@ class ResyBotv3Frame(ttk.Frame):
 		reservationlabel.grid(column = 0, row = 6, sticky=(W))
 		reservationentry.grid(column = 0, row = 6, sticky=(E))
 
-		runButton.grid(column = 0, row = 7, sticky = (E))
+		saveButton.grid(column = 0, row = 7, sticky = (E))
+		listButton.grid(column = 0, row = 7, sticky = (W))
 		closeButton.grid(column = 0, row = 8, sticky = (E))
 
 	def savelist(self, **kwargs):
@@ -682,6 +756,7 @@ class ResyBotv3Frame(ttk.Frame):
 		# breakpoint()
 		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "period":kwargs['period'].get(), "reservation_type":kwargs['reservation'].get()})
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
+
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):
 		super().__init__(parent)
