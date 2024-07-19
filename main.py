@@ -1,3 +1,11 @@
+import git
+import os
+git_dir = os.getcwd() 
+g = git.cmd.Git(git_dir)
+g.pull()		
+# messagebox.showinfo(title='Info', message='the scripts has updated..')
+print("script updated")
+
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -7,7 +15,6 @@ import os
 import sys
 from sys import platform
 from subprocess import Popen, check_call
-import git
 import warnings
 import shutil
 from settings import PYTHON_EXE, CHROME_USER_DATA
@@ -56,12 +63,6 @@ def savejson(filename, valuelist, value=False):
 				json.dump(valuelist, final)
 		return True
 
-def gitPull():
-	git_dir = os.getcwd() 
-	g = git.cmd.Git(git_dir)
-	g.pull()		
-	# messagebox.showinfo(title='Info', message='the scripts has updated..')
-	print("script updated")
 
 class Window(Tk):
 	def __init__(self) -> None:
@@ -837,7 +838,7 @@ def run_module(comlist):
 	print(comall)
 
 def main():
-	gitPull()
+	
 	window = Window()
 	window.mainloop()
 
