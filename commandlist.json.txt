@@ -1,0 +1,1 @@
+[{"baseurl": "https://resy.com/cities/new-york-ny/venues/zensushi-omakase", "date": "2024-07-19", "time": "5:00 PM", "seats": "2", "period": "Dinner", "reservation_type": "Bar Counter"}, {"baseurl": "https://resy.com/cities/new-york-ny/venues/zensushi-omakase", "date": "2024-07-22", "time": "5:00 PM", "seats": "2", "period": "Dinner", "reservation_type": "Bar Mutsumi"}]
