@@ -56,6 +56,13 @@ def savejson(filename, valuelist, value=False):
 				json.dump(valuelist, final)
 		return True
 
+def gitPull():
+	git_dir = os.getcwd() 
+	g = git.cmd.Git(git_dir)
+	g.pull()		
+	# messagebox.showinfo(title='Info', message='the scripts has updated..')
+	print("script updated")
+
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
@@ -85,15 +92,6 @@ class Window(Tk):
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
-		self.gitPull()
-
-	def gitPull(self):
-		git_dir = os.getcwd() 
-		g = git.cmd.Git(git_dir)
-		g.pull()		
-		# messagebox.showinfo(title='Info', message='the scripts has updated..')
-		print("script updated")
-
 
 	def procexit(self):
 		try:
@@ -839,6 +837,7 @@ def run_module(comlist):
 	print(comall)
 
 def main():
+	gitPull()
 	window = Window()
 	window.mainloop()
 
