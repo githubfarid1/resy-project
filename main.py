@@ -4,7 +4,7 @@ git_dir = os.getcwd()
 g = git.cmd.Git(git_dir)
 g.pull()		
 # messagebox.showinfo(title='Info', message='the scripts has updated..')
-print("script updatedx")
+print("script updated")
 
 from tkinter import *
 from tkinter import ttk
