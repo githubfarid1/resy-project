@@ -2,6 +2,7 @@ import git
 import os
 git_dir = os.getcwd() 
 g = git.cmd.Git(git_dir)
+
 g.pull()		
 # messagebox.showinfo(title='Info', message='the scripts has updated..')
 print("script updated")
@@ -435,7 +436,7 @@ class ListCommandFrame(ttk.Frame):
 		procentry['values'] = ['Single','Multiple']
 		procentry.current(0)
 
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process)
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry))
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -462,23 +463,17 @@ class ListCommandFrame(ttk.Frame):
 		for dl in self.commandlist:
 			if "{} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['seats'], dl['period'], dl['reservation_type']) != strselect:
 				tmplist.append(dl)
+		self.commandlist = []
 		self.commandlist = tmplist.copy()
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
 
-	def addlist(self, **kwargs):
-		self.commandlist.append({"profilename": kwargs['profilename'].get(), "email": kwargs['email'].get(), "password": kwargs['password'].get()})
-		if savejson(filename="profilelist.json", valuelist=self.commandlist, value=kwargs['profilename'].get()):
-			kwargs['valuelist'].insert(0, f"{kwargs['profilename'].get()} | {kwargs['email'].get()} | {kwargs['password'].get()}")
-		else:
-			# breakpoint()
-			self.commandlist.pop()
-		
-		kwargs['profilename'].delete(0, END)
-		kwargs['email'].delete(0, END)
-		kwargs['password'].delete(0, END)
-		
-		# messagebox.showinfo("Message box","New Period added..")
+	def run_process(self, **kwargs):
+		profile = kwargs['profile'].get().split("|")[0].strip()
+		email = kwargs['profile'].get().split("|")[1].strip()
+		password = kwargs['profile'].get().split("|")[2].strip()
+		run_module(comlist=[PYLOC, "modules/resybotv3.py", "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get()), "-ex", '{}'.format(kwargs['exemode'].get()) ])
 
+	
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
 		super().__init__(window)
