@@ -1,18 +1,10 @@
-import git
-import os
-git_dir = os.getcwd() 
-g = git.cmd.Git(git_dir)
-
-g.pull()		
-# messagebox.showinfo(title='Info', message='the scripts has updated..')
-print("script updated")
-
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkcalendar import Calendar, DateEntry
 from pathlib import Path
 import os
+import git
 import sys
 from sys import platform
 from subprocess import Popen, check_call
@@ -70,6 +62,8 @@ class Window(Tk):
 		super().__init__()
 		self.title('Resy Bot Application')
 		# self.resizable(0, 0)
+		self.gitme = git.cmd.Git(os.getcwd())
+		# breakpoint()
 		self.grid_propagate(False)
 		width = 700
 		height = 650
@@ -89,11 +83,18 @@ class Window(Tk):
 		# settingButton = ttk.Button(self, text='Chrome Setup', command=lambda:chromeSetup())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
-		# pullButton.grid(row = 2, column = 2, sticky = (W), padx=20, pady=10)
+		if not "up to date" in self.gitme.status():
+			pullButton.grid(row = 2, column=0, sticky = (W), padx=20, pady=5)
 		# settingButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+
+	def gitPull(self):
+		# g = git.cmd.Git(os.getcwd())
+		self.gitme.pull()
+		# g.pull()		
+		messagebox.showinfo(title='Info', message='the scripts has updated..')
 
 	def procexit(self):
 		try:
