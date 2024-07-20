@@ -19,7 +19,6 @@ if platform == "linux" or platform == "linux2":
 elif platform == "win32":
 	from subprocess import CREATE_NEW_CONSOLE
 import json
-#test git
 
 warnings.filterwarnings("ignore", category=UserWarning)
 if platform == "linux" or platform == "linux2":
@@ -79,13 +78,12 @@ class Window(Tk):
 
 		self.rowconfigure(0, weight=1)
 		exitButton = ttk.Button(self, text="Exit", command=lambda:self.procexit())
-		pullButton = ttk.Button(self, text='Update Script', command=lambda:self.gitPull())
+		pullButton = Button(self, text='Update Script',  background="red", command=lambda:self.gitPull())
 		# settingButton = ttk.Button(self, text='Chrome Setup', command=lambda:chromeSetup())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
 		if not "up to date" in self.gitme.status():
-			pullButton.grid(row = 2, column=0, sticky = (W), padx=20, pady=5)
-		# settingButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
+			pullButton.grid(row=2, column=0, sticky = (W), padx=20, pady=5)
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
