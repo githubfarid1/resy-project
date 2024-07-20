@@ -94,7 +94,8 @@ class Window(Tk):
 		# g = git.cmd.Git(os.getcwd())
 		self.gitme.pull()
 		# g.pull()		
-		messagebox.showinfo(title='Info', message='the scripts has updated..')
+		messagebox.showinfo(title='Info', message='the scripts has updated, reopen the application...')
+		sys.exit()
 
 	def procexit(self):
 		try:
