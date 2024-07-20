@@ -78,7 +78,7 @@ class Window(Tk):
 
 		self.rowconfigure(0, weight=1)
 		exitButton = ttk.Button(self, text="Exit", command=lambda:self.procexit())
-		pullButton = Button(self, text='Update Script',  background="red", command=lambda:self.gitPull())
+		pullButton = Button(self, text='Update Script',  bg="red", command=lambda:self.gitPull())
 		# settingButton = ttk.Button(self, text='Chrome Setup', command=lambda:chromeSetup())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
