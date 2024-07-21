@@ -84,7 +84,7 @@ class Window(Tk):
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
 		pullButton.grid(row=2, column=0, sticky = (W), padx=20, pady=5)
 		if not "up to date" in self.gitme.status():
-			pullButton['state'] = "enable"
+			pullButton['state'] = "normal"
 			pullButton['bg'] = "red"
 		else:
 			pullButton['state'] = "disabled"
