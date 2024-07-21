@@ -42,36 +42,44 @@ def random_delay(min_seconds, max_seconds):
 def reserve_restaurant(page, selected_reservation):
     """Reserve the restaurant with improved error handling and explicit waits."""
     print(f"Trying to reservation...", end=" ", flush=True)
-    selected_reservation.click()
-    frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
-    frame = frame_element.content_frame()
-    time.sleep(2)
-    for i in range(5):
-        page.mouse.wheel(0, 15000)
-        time.sleep(1)     
-    # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
-    frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
-    frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
-    time.sleep(2)
-    if frame.query_selector('[data-test-id="order_summary_page-button-book"]'):
+    try:
+        selected_reservation.click()
+        frame_element = page.wait_for_selector('iframe[title="Resy - Book Now"]', timeout=10000)
+        frame = frame_element.content_frame()
+        time.sleep(2)
+        for i in range(5):
+            page.mouse.wheel(0, 15000)
+            time.sleep(1)     
+        # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+        frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
-    time.sleep(2)
-    if frame.query_selector('.StripeForm__header'):
-        print("Failed")
-        message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
-        logging.info(message)
-        print(" ".join([message, CONTINUE_MESSAGE]))
-        return False
-    print("Passed")
-    frame.wait_for_selector('.ConfirmationPage__header', timeout=60000)
-    confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
-    message1 = f"Reservation confirmation message: {confirmation_message}"
-    message2 = "Reservation confirmed."
-    logging.info(message1)
-    logging.info(message2)
-    print(" ".join([message1, message2, CONTINUE_MESSAGE]))
-    return True
+        time.sleep(2)
+        if frame.query_selector('[data-test-id="order_summary_page-button-book"]'):
+            frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
+        time.sleep(2)
+        if frame.query_selector('.StripeForm__header'):
+            print("Failed")
+            message = frame.query_selector('.StripeForm__header').inner_text().split('\n')[0]
+            logging.info(message)
+            print(" ".join([message, CONTINUE_MESSAGE]))
+            return 0
+        print("Passed")
+        frame.wait_for_selector('.ConfirmationPage__header', timeout=60000)
+        confirmation_message = frame.query_selector('.ConfirmationPage__header').inner_text()
+        message1 = f"Reservation confirmation message: {confirmation_message}"
+        message2 = "Reservation confirmed."
+        logging.info(message1)
+        logging.info(message2)
+        print(" ".join([message1, message2, CONTINUE_MESSAGE]))
+        return 1
+    except Exception as e:
+        print("error on reserve", e)
+        return 2
 
+def print_list_bookings(listbookings):
+    print("List of Bookings:")
+    for idx, lb in enumerate(listbookings):
+        print(f"{idx+1}.", "Restaurant Name:", str(lb['baseurl']).split("/")[-1], "| Period:", lb['period'], "| Date:", lb['date'], "| Time:", lb['time'], "| Seats:", lb['seats'] )
 
 def main():
     parser = argparse.ArgumentParser(description="Resy Bot v1")
@@ -152,71 +160,89 @@ def main():
             page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
             page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
 
-            message = f"Bot is running... [{chprofile}]"
-            logging.info(message)
-            print(message)
             file = open("commandlist.json", "r")
             commandlist = json.load(file)
             login = False
-            for command in commandlist:
-                baseurl = command['baseurl']
-                date_wanted = command['date']
-                period_wanted = command['period']
-                time_wanted = command['time']
-                seats = command['seats']
-                reservation_type = command['reservation_type']
-                restaurant_link = f"{str(baseurl).split('?')[0]}?date={date_wanted}&seats={seats}"
-                print(f"Trying going to {restaurant_link}...", end=" ", flush=True)
-                page.goto(restaurant_link, wait_until='domcontentloaded')
-                if  not login and page.query_selector('button.Button--login'):
-                    login_to_resy(page, email, password)
-                    message = "Logged in successfully."
-                login = True
-                page.evaluate("() => document.fonts.ready")
-                print("Passed")
-
-                # breakpoint()
-                if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
-                    page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
-                    message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
-                    logging.info(message)
-                    print(" ".join([message, CONTINUE_MESSAGE]))
-                else:
-                    print(f"Looking for {period_wanted}...", end=" ", flush=True)
-                    page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
-                    try:
-                        page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift ShiftInventory__shift--last")]', timeout=2000)
-                    except:
-                        pass
-                    menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
-                    if not menu:
-                        print("Not Found")
-                        message = f"No reservation available on {period_wanted}"
-                        logging.info(message)
-                        print(" ".join([message, CONTINUE_MESSAGE]))
+            commandlist = [{"baseurl": cmd['baseurl'], "date": cmd['date'], "period":cmd['period'], "time": cmd['time'], "seats": cmd['seats'], "reservation_type": cmd['reservation_type'], "status": False} for cmd in commandlist]
+            print_list_bookings(commandlist)
+            # breakpoint()
+            print("")
+            message = f"Bot is running... [{chprofile}]"
+            logging.info(message)
+            print(message)
+            maxtrial = 5
+            hasrec = True
+            trial = 0
+            while True:
+                random_delay(3, 6)
+                if not hasrec or trial >= maxtrial:
+                    break
+                trial += 1
+                for idx, command in enumerate(commandlist):
+                    if command['status']:
+                        hasrec = False    
                         continue
-                        # sys.exit()
-                    print("Found")
+                    hasrec = True
+                    baseurl = command['baseurl']
+                    date_wanted = command['date']
+                    period_wanted = command['period']
+                    time_wanted = command['time']
+                    seats = command['seats']
+                    reservation_type = command['reservation_type']
+                    restaurant_link = f"{str(baseurl).split('?')[0]}?date={date_wanted}&seats={seats}"
+                    print(f"Trying going to {restaurant_link}...", end=" ", flush=True)
+                    page.goto(restaurant_link, wait_until='domcontentloaded')
+                    if  not login and page.query_selector('button.Button--login'):
+                        login_to_resy(page, email, password)
+                        message = "Logged in successfully."
+                    login = True
+                    page.evaluate("() => document.fonts.ready")
+                    print("Passed")
+
+                    # breakpoint()
                     if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
                         page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                    # breakpoint()
-                    print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
-                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[normalize-space(text())="{reservation_type}"]]')
-                    if selected_reservation:
-                        print("Found")
-                        message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"
-                        logging.info(message)
-                        print(message)
-                        reserve_restaurant(page, selected_reservation)
-                        random_delay(3, 6)
-                    else:
-                        print("Not Found")
-                        message = "No reservation available"
+                    if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
+                        message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
                         logging.info(message)
                         print(" ".join([message, CONTINUE_MESSAGE]))
-                        continue
-                        # sys.exit()
+                    else:
+                        print(f"Looking for {period_wanted}...", end=" ", flush=True)
+                        page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
+                        try:
+                            page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift ShiftInventory__shift--last")]', timeout=2000)
+                        except:
+                            pass
+                        menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
+                        if not menu:
+                            print("Not Found")
+                            message = f"No reservation available on {period_wanted}"
+                            logging.info(message)
+                            print(" ".join([message, CONTINUE_MESSAGE]))
+                            continue
+                            # sys.exit()
+                        print("Found")
+                        if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
+                            page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
+                        # breakpoint()
+                        print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
+                        selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[translate(normalize-space(text()),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="{reservation_type}"]]')
+                        if selected_reservation:
+                            print("Found")
+                            message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"
+                            logging.info(message)
+                            print(message)
+                            status = reserve_restaurant(page, selected_reservation)
+                            if  status == 1 or status == 2:
+                                commandlist[idx]['status'] = True
+                            random_delay(3, 6)
+                        else:
+                            print("Not Found")
+                            message = "No reservation available"
+                            logging.info(message)
+                            print(" ".join([message, CONTINUE_MESSAGE]))
+                            continue
+                            # sys.exit()
 
             
            # break  
