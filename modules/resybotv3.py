@@ -226,7 +226,7 @@ def main():
                             page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
                         # breakpoint()
                         print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
-                        selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[translate(normalize-space(text()),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="{reservation_type}"]]')
+                        selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[translate(normalize-space(text()),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="{str(reservation_type).lower()}"]]')
                         if selected_reservation:
                             print("Found")
                             message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"
