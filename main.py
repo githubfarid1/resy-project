@@ -78,12 +78,16 @@ class Window(Tk):
 
 		self.rowconfigure(0, weight=1)
 		exitButton = ttk.Button(self, text="Exit", command=lambda:self.procexit())
-		pullButton = Button(self, text='Update Script',  bg="red", command=lambda:self.gitPull())
+		pullButton = Button(self, text='Update Script', command=lambda:self.gitPull())
 		# settingButton = ttk.Button(self, text='Chrome Setup', command=lambda:chromeSetup())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
+		pullButton.grid(row=2, column=0, sticky = (W), padx=20, pady=5)
 		if not "up to date" in self.gitme.status():
-			pullButton.grid(row=2, column=0, sticky = (W), padx=20, pady=5)
+			pullButton['state'] = "enable"
+			pullButton['bg'] = "red"
+		else:
+			pullButton['state'] = "disabled"
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
