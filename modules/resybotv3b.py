@@ -52,6 +52,7 @@ def reserve_restaurant(page, selected_reservation):
             time.sleep(1)     
         # page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
         frame.wait_for_selector('[data-test-id="order_summary_page-button-book"]', timeout=30000)
+        time.sleep(1)
         frame.query_selector('[data-test-id="order_summary_page-button-book"]').click()
         time.sleep(2)
         if frame.query_selector('[data-test-id="order_summary_page-button-book"]'):
@@ -82,17 +83,29 @@ def print_list_bookings(listbookings):
         print(f"{idx+1}.", "Restaurant Name:", str(lb['baseurl']).split("/")[-1], "| Period:", lb['period'], "| Date:", lb['date'], "| Time:", lb['time'], "| Seats:", lb['seats'] )
 
 def main():
-    parser = argparse.ArgumentParser(description="Resy Bot v2")
+    parser = argparse.ArgumentParser(description="Resy Bot v3b")
+    parser.add_argument('-u', '--url', type=str,help="Base URL")
+    parser.add_argument('-d', '--date', type=str,help="Date wanted")
+    parser.add_argument('-t', '--time', type=str,help="Time wanted")
+    parser.add_argument('-s', '--seats', type=str,help="Seats count")
+    parser.add_argument('-p', '--period', type=str,help="period type")
+    parser.add_argument('-r', '--reservation', type=str,help="Reservation type")
     parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
     parser.add_argument('-em', '--email', type=str,help="Resy Email")
     parser.add_argument('-pw', '--password', type=str,help="Resy Password")
     parser.add_argument('-hl', '--headless', type=str,help="Headless Mode")
     args = parser.parse_args()
         
-    if not args.chprofile or not args.email or not args.password or not args.headless:
-        input(" ".join(['Please add complete parameters, ex: python resybotv3 -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password or not args.headless:
+        input(" ".join(['Please add complete parameters, ex: python resybotv3 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
         sys.exit()
 
+    date_wanted = args.date
+    seats = args.seats
+    time_wanted = args.time
+    period_wanted = args.period
+    reservation_type = args.reservation
+    restaurant_link = f"{args.url.split('?')[0]}?date={date_wanted}&seats={seats}"
     chprofile = args.chprofile
     email = args.email
     password = args.password
@@ -129,28 +142,25 @@ def main():
             wargs.append('--force-show-update-menu-badge')
 
 
-            # browser =  pr.chromium.launch(headless=headless, args=wargs)
+            browser =  pr.chromium.launch(headless=headless, args=wargs)
             # breakpoint()
             proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
-            browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
-                    headless=headless, 
-                    args=wargs, 
-                    user_agent=user_agent,
-                    permissions=['geolocation', 'notifications'],
-                    java_script_enabled=True,
-                    no_viewport=True,
-                    # geolocation=False,
-                    # locale='US_en',
-                    # bypass_csp=True,
-                    # proxy={'server': proxy_server}
-                    )
+            context = browser.new_context(
+                user_agent=user_agent,
+                no_viewport=True,
+                permissions=['geolocation', 'notifications'],
+                java_script_enabled=True,
+                #proxy = {
+                #'server': proxy_server
+            #}
+            )
 
             # def slow_down_route(route, request):
             #     # Slow down network request by 2000 milliseconds.
             #     route.continue_()
             # browser.route('**', slow_down_route)          
-
-            page = browser.pages[0]
+            
+            page = context.new_page()
             stealth_sync(page)
                             
             page.on("console", lambda msg: logging.debug(f"PAGE LOG: {msg.text}"))
@@ -158,90 +168,73 @@ def main():
             page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
             page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
 
-            file = open("commandlist.json", "r")
-            commandlist = json.load(file)
             login = False
-            commandlist = [{"baseurl": cmd['baseurl'], "date": cmd['date'], "period":cmd['period'], "time": cmd['time'], "seats": cmd['seats'], "reservation_type": cmd['reservation_type'], "status": False} for cmd in commandlist]
-            print_list_bookings(commandlist)
-            # breakpoint()
             print("")
             message = f"Bot is running... [{chprofile}]"
             logging.info(message)
             print(message)
             maxtrial = 5
-            hasrec = True
             trial = 0
-            while True:
+            status = False
+            while not status:
                 random_delay(3, 6)
-                if not hasrec or trial >= maxtrial:
+                if trial >= maxtrial:
                     break
                 trial += 1
-                for idx, command in enumerate(commandlist):
-                    if command['status']:
-                        hasrec = False    
-                        continue
-                    hasrec = True
-                    baseurl = command['baseurl']
-                    date_wanted = command['date']
-                    period_wanted = command['period']
-                    time_wanted = command['time']
-                    seats = command['seats']
-                    reservation_type = command['reservation_type']
-                    restaurant_link = f"{str(baseurl).split('?')[0]}?date={date_wanted}&seats={seats}"
-                    print(f"Trying going to {restaurant_link}...", end=" ", flush=True)
-                    page.goto(restaurant_link, wait_until='domcontentloaded')
-                    time.sleep(2)
-                    if  not login and page.query_selector('button.Button--login'):
-                        login_to_resy(page, email, password)
-                        message = "Logged in successfully."
-                    login = True
-                    page.evaluate("() => document.fonts.ready")
-                    print("Passed")
-
-                    # breakpoint()
-                    if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
-                        page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                    if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
-                        message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
+                print(f"Trying going to {restaurant_link}...", end=" ", flush=True)
+                page.goto(restaurant_link, wait_until='domcontentloaded')
+                time.sleep(2)
+                if  not login and page.query_selector('button.Button--login'):
+                    login_to_resy(page, email, password)
+                    message = "Logged in successfully."
+                login = True
+                page.evaluate("() => document.fonts.ready")
+                print("Passed")
+                time.sleep(2)
+                # breakpoint()
+                if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
+                    page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
+                if page.query_selector('//div[contains(@class,"ShiftInventory__availability-message")]'):
+                    message = page.query_selector(f'//div[contains(@class,"ShiftInventory__availability-message")]').text_content()
+                    logging.info(message)
+                    print(" ".join([message, CONTINUE_MESSAGE]))
+                else:
+                    print(f"Looking for {period_wanted}...", end=" ", flush=True)
+                    page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
+                    try:
+                        page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift ShiftInventory__shift--last")]', timeout=2000)
+                    except:
+                        pass
+                    menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
+                    if not menu:
+                        print("Not Found")
+                        message = f"No reservation available on {period_wanted}"
                         logging.info(message)
                         print(" ".join([message, CONTINUE_MESSAGE]))
-                    else:
-                        print(f"Looking for {period_wanted}...", end=" ", flush=True)
-                        page.wait_for_selector(f'//div[contains(@class,"VenuePage__Selector-Wrapper")]', timeout=30000)
-                        try:
-                            page.wait_for_selector(f'//div[contains(@class,"ShiftInventory__shift ShiftInventory__shift--last")]', timeout=2000)
-                        except:
-                            pass
-                        menu = page.query_selector(f'//div[contains(@class,"ShiftInventory__shift")][h2[text()="{period_wanted.lower()}"]]')
-                        if not menu:
-                            print("Not Found")
-                            message = f"No reservation available on {period_wanted}"
-                            logging.info(message)
-                            print(" ".join([message, CONTINUE_MESSAGE]))
-                            continue
-                            # sys.exit()
+                        continue
+                        # sys.exit()
+                    print("Found")
+                    if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
+                        page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
+                    # breakpoint()
+                    print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
+                    selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[translate(normalize-space(text()),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="{str(reservation_type).lower()}"]]')
+                    if selected_reservation:
                         print("Found")
-                        if page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]'):
-                            page.query_selector('//button[contains(@class,"AnnouncementModal__icon-close")]').click()
-                        # breakpoint()
-                        print(f"Looking for {time_wanted} on {reservation_type}...", end=" ", flush=True)
-                        selected_reservation = menu.query_selector(f'//button[div[text()="{time_wanted}"]][div[translate(normalize-space(text()),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="{str(reservation_type).lower()}"]]')
-                        if selected_reservation:
-                            print("Found")
-                            message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"
-                            logging.info(message)
-                            print(message)
-                            status = reserve_restaurant(page, selected_reservation)
-                            if  status == 1 or status == 2:
-                                commandlist[idx]['status'] = True
-                            random_delay(3, 6)
-                        else:
-                            print("Not Found")
-                            message = "No reservation available"
-                            logging.info(message)
-                            print(" ".join([message, CONTINUE_MESSAGE]))
-                            continue
-                            # sys.exit()
+                        message = f"Reservation available at {time_wanted} for {seats} people {reservation_type}"
+                        logging.info(message)
+                        print(message)
+                        resstatus = reserve_restaurant(page, selected_reservation)
+                        if  resstatus == 1 or resstatus == 2:
+                            status = True
+                        random_delay(3, 6)
+                    else:
+                        print("Not Found")
+                        message = "No reservation available"
+                        logging.info(message)
+                        print(" ".join([message, CONTINUE_MESSAGE]))
+                        continue
+                        # sys.exit()
 
             
            # break  

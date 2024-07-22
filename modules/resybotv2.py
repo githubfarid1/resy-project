@@ -85,7 +85,7 @@ def reserve_restaurant(page, selected_reservation):
         # sys.exit()
 
 def main():
-    parser = argparse.ArgumentParser(description="Resy Bot v1")
+    parser = argparse.ArgumentParser(description="Resy Bot v2")
     parser.add_argument('-u', '--url', type=str,help="Base URL")
     parser.add_argument('-d', '--date', type=str,help="Date wanted")
     parser.add_argument('-t', '--time', type=str,help="Time wanted")
@@ -99,7 +99,7 @@ def main():
     args = parser.parse_args()
         
     if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password or not args.headless:
-        input(" ".join(['Please add complete parameters, ex: python resybotv1 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
+        input(" ".join(['Please add complete parameters, ex: python resybotv2 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
         sys.exit()
     date_wanted = args.date
     seats = args.seats

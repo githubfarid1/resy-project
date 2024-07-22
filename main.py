@@ -478,9 +478,12 @@ class ListCommandFrame(ttk.Frame):
 		profile = kwargs['profile'].get().split("|")[0].strip()
 		email = kwargs['profile'].get().split("|")[1].strip()
 		password = kwargs['profile'].get().split("|")[2].strip()
-		run_module(comlist=[PYLOC, "modules/resybotv3.py", "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get()), "-ex", '{}'.format(kwargs['exemode'].get()) ])
-
-	
+		if kwargs['exemode'].get() == 'Single':
+			run_module(comlist=[PYLOC, "modules/resybotv3.py", "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get())])
+		else:
+			for command in self.commandlist:
+				run_module(comlist=[PYLOC, "modules/resybotv3b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-p", '{}'.format(command['period']), "-r", '{}'.format(command['reservation_type']), "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get())])
+				
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
 		super().__init__(window)
