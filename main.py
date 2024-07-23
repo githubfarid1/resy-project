@@ -59,7 +59,7 @@ def savejson(filename, valuelist, value=False):
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
-		self.title('Resy Bot Application')
+		self.title('Resy Bot Application @2024')
 		# self.resizable(0, 0)
 		self.gitme = git.cmd.Git(os.getcwd())
 		# breakpoint()
