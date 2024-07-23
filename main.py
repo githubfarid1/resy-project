@@ -62,7 +62,7 @@ class Window(Tk):
 		self.title('Resy.com Bot Application @2024x')
 		# self.resizable(0, 0)
 		self.gitme = git.cmd.Git(os.getcwd())
-		self.gitme.fetch('--dry-run')
+		self.gitme.fetch()
 		# breakpoint()
 		self.grid_propagate(False)
 		width = 700
