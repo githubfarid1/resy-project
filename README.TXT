@@ -12,4 +12,4 @@ playwright install
 7. run the script:
 python main.py
 8.
-9.
+
