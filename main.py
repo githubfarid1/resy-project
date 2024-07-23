@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from tkcalendar import Calendar, DateEntry
+from tkcalendar import DateEntry
 from pathlib import Path
 import os
 import git
