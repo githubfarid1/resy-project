@@ -70,36 +70,36 @@ def main():
             wargs.append('--start-maximized')
             # wargs.append('--disable-infobars')
             # wargs.append('--disable-blink-features=AutomationControlled')
-            breakpoint()
-            browser =  pr.chromium.launch(args=wargs)
-            # browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
-            #         headless=False, 
-            #         args=wargs, 
-            #         user_agent=user_agent,
-            #         permissions=['geolocation', 'notifications'],
-            #         java_script_enabled=True,
-            #         no_viewport=True
-            #         )
-            context = browser.new_context(
-                user_agent=user_agent,
-                # viewport={'width': random.randint(1200, 1920), 'height': random.randint(900, 1080)},
-                # viewport={'width': 1920, 'height': 1080},
-                permissions=['geolocation', 'notifications'],
-                java_script_enabled=True,
-                no_viewport=True,
-                # bypass_csp=True,
-                # locale='US_en',
-                # geolocation=False,
-                #proxy = {
-                    #'server': proxy_server
-                #}
-            )
-            page = context.new_page()
-            # page = context.pages[0]
+            # breakpoint()
+            # browser =  pr.chromium.launch(args=wargs)
+            browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
+                    headless=False, 
+                    args=wargs, 
+                    user_agent=user_agent,
+                    permissions=['geolocation', 'notifications'],
+                    java_script_enabled=True,
+                    no_viewport=True
+                    )
+            # context = browser.new_context(
+            #     user_agent=user_agent,
+            #     # viewport={'width': random.randint(1200, 1920), 'height': random.randint(900, 1080)},
+            #     # viewport={'width': 1920, 'height': 1080},
+            #     permissions=['geolocation', 'notifications'],
+            #     java_script_enabled=True,
+            #     no_viewport=True,
+            #     # bypass_csp=True,
+            #     # locale='US_en',
+            #     # geolocation=False,
+            #     #proxy = {
+            #         #'server': proxy_server
+            #     #}
+            # )
+            # page = context.new_page()
+            page = browser.pages[0]
             stealth_sync(page)
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
             random_delay(2, 5)
-            breakpoint()
+            # breakpoint()
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."

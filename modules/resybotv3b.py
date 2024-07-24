@@ -78,9 +78,9 @@ def reserve_restaurant(page, selected_reservation):
         return 2
 
 def print_list_bookings(listbookings):
-    print("List of Bookings:")
+    # print("List of Bookings:")
     for idx, lb in enumerate(listbookings):
-        print(f"{idx+1}.", "Restaurant Name:", str(lb['baseurl']).split("/")[-1], "| Period:", lb['period'], "| Date:", lb['date'], "| Time:", lb['time'], "| Seats:", lb['seats'] )
+        print("***", "Restaurant Name:", str(lb['baseurl']).split("/")[-1], "| Period:", lb['period'], "| Date:", lb['date'], "| Time:", lb['time'], "| Seats:", lb['seats'], "***")
 
 def main():
     parser = argparse.ArgumentParser(description="Resy Bot v3b")
@@ -94,10 +94,11 @@ def main():
     parser.add_argument('-em', '--email', type=str,help="Resy Email")
     parser.add_argument('-pw', '--password', type=str,help="Resy Password")
     parser.add_argument('-hl', '--headless', type=str,help="Headless Mode")
+    parser.add_argument('-ns', '--nonstop', type=str,help="Nonstop Checking Mode")
     args = parser.parse_args()
         
-    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password or not args.headless:
-        input(" ".join(['Please add complete parameters, ex: python resybotv3 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.period or not args.reservation or not args.chprofile or not args.email or not args.password or not args.headless or not args.nonstop:
+        input(" ".join(['Please add complete parameters, ex: python resybotv3 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -em [email] -pw [password] -hl [headless] -ns [nonstop]', CLOSE_MESSAGE]))
         sys.exit()
 
     date_wanted = args.date
@@ -111,6 +112,10 @@ def main():
     password = args.password
     headless = args.headless
     headless = True if headless == 'Yes' else False
+    nonstop = args.nonstop
+    nonstop = True if nonstop == 'Yes' else False
+    commandlist = [{"baseurl": args.url, "date": date_wanted, "period":period_wanted, "time": time_wanted, "seats": seats, "reservation_type": reservation_type, "status": False}]
+    print_list_bookings(commandlist)
 
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -120,66 +125,67 @@ def main():
         # More user agents can be added here
     ]
     chrome_user_data = f"{CHROME_USER_DATA}\\{chprofile}"
-    try:
-        user_agent = random.choice(user_agents)
-        with sync_playwright() as pr:
-            wargs = []
-            # wargs.append('--enable-logging=stderr')
-            # list chromium arguments: https://peter.sh/experiments/chromium-command-line-switches/
-            wargs.append('--v=1')
-            wargs.append('--no-sandbox')
-            wargs.append('--enable-features=NetworkService,NetworkServiceInProcess')
-            wargs.append('--enable-automation')
-            wargs.append('--disable-popup-blocking')
-            wargs.append('--disable-web-security')
-            wargs.append('--start-maximized')
+    user_agent = random.choice(user_agents)
+    with sync_playwright() as pr:
+        wargs = []
+        # wargs.append('--enable-logging=stderr')
+        # list chromium arguments: https://peter.sh/experiments/chromium-command-line-switches/
+        wargs.append('--v=1')
+        wargs.append('--no-sandbox')
+        wargs.append('--enable-features=NetworkService,NetworkServiceInProcess')
+        wargs.append('--enable-automation')
+        wargs.append('--disable-popup-blocking')
+        wargs.append('--disable-web-security')
+        wargs.append('--start-maximized')
 
-            wargs.append('--disable-fetching-hints-at-navigation-start')
-            wargs.append('--force-first-run')
-            wargs.append('--content-shell-hide-toolbar')
-            wargs.append('--suppress-message-center-popups')
-            wargs.append('--no-first-run')
-            wargs.append('--force-show-update-menu-badge')
+        wargs.append('--disable-fetching-hints-at-navigation-start')
+        wargs.append('--force-first-run')
+        wargs.append('--content-shell-hide-toolbar')
+        wargs.append('--suppress-message-center-popups')
+        wargs.append('--no-first-run')
+        wargs.append('--force-show-update-menu-badge')
 
 
-            browser =  pr.chromium.launch(headless=headless, args=wargs)
-            # breakpoint()
-            proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
-            context = browser.new_context(
-                user_agent=user_agent,
-                no_viewport=True,
-                permissions=['geolocation', 'notifications'],
-                java_script_enabled=True,
-                #proxy = {
-                #'server': proxy_server
-            #}
-            )
+        browser =  pr.chromium.launch(headless=headless, args=wargs)
+        # breakpoint()
+        proxy_server = "http://kpeqkzlp:0sdrl0jganhc@38.154.227.167:5868"
+        context = browser.new_context(
+            user_agent=user_agent,
+            no_viewport=True,
+            permissions=['geolocation', 'notifications'],
+            java_script_enabled=True,
+            #proxy = {
+            #'server': proxy_server
+        #}
+        )
 
-            # def slow_down_route(route, request):
-            #     # Slow down network request by 2000 milliseconds.
-            #     route.continue_()
-            # browser.route('**', slow_down_route)          
-            
-            page = context.new_page()
-            stealth_sync(page)
-                            
-            page.on("console", lambda msg: logging.debug(f"PAGE LOG: {msg.text}"))
-            page.on("pageerror", lambda msg: logging.error(f"PAGE ERROR: {msg}"))
-            page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
-            page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
+        # def slow_down_route(route, request):
+        #     # Slow down network request by 2000 milliseconds.
+        #     route.continue_()
+        # browser.route('**', slow_down_route)          
+        
+        page = context.new_page()
+        stealth_sync(page)
+                        
+        page.on("console", lambda msg: logging.debug(f"PAGE LOG: {msg.text}"))
+        page.on("pageerror", lambda msg: logging.error(f"PAGE ERROR: {msg}"))
+        page.on("response", lambda response: logging.debug(f"RESPONSE: {response.url} {response.status}"))
+        page.on("requestfailed", lambda request: logging.error(f"REQUEST FAILED: {request.url} {request.failure}"))
 
-            login = False
-            print("")
-            message = f"Bot is running... [{chprofile}]"
-            logging.info(message)
-            print(message)
-            maxtrial = 5
-            trial = 0
-            status = False
-            while not status:
+        login = False
+        print("")
+        message = f"Bot is running... [{chprofile}]"
+        logging.info(message)
+        print(message)
+        maxtrial = 3
+        trial = 0
+        status = False
+        while not status:
+            try:
                 random_delay(3, 6)
-                if trial >= maxtrial:
-                    break
+                if not nonstop:
+                    if trial >= maxtrial:
+                        break
                 trial += 1
                 print(f"Trying going to {restaurant_link}...", end=" ", flush=True)
                 page.goto(restaurant_link, wait_until='domcontentloaded')
@@ -234,18 +240,13 @@ def main():
                         logging.info(message)
                         print(" ".join([message, CONTINUE_MESSAGE]))
                         continue
-                        # sys.exit()
-
             
-           # break  
-    except Exception as e:
-        # Show all error details in log file
-        message = "An error occurred"
-        print(message, e)
-        logging.exception(message)
-        # sys.exit()
-        # continue
-        # return e
+            except Exception as e:
+                message = "An error occurred"
+                print(message, e)
+                logging.exception(message)
+                continue
+
 
 
 if __name__ == '__main__':

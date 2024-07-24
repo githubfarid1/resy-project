@@ -426,13 +426,14 @@ class ListCommandFrame(ttk.Frame):
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
 		titleLabel = TitleLabel(self, text="List Bot's Command")
-		proclabel = Label(self, text="Execute Mode: ")
 
 		dlist = StringVar(value=commandlist)
 		self.valueslist = Listbox(self, width=120, height=10, listvariable=dlist)
 		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
 		chprofilelabel = Label(self, text="Chromium Profile: ")
 		headlesslabel = Label(self, text="Headless Mode: ")
+		proclabel = Label(self, text="Execute Mode: ")
+		nstoplabel = Label(self, text="Nonstop Checking: ")
 		closeButton = CloseButton(self)
 		chprofileentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=30)
 		chprofileentry['values'] = [profile for profile in PROFILE_LIST]
@@ -443,8 +444,11 @@ class ListCommandFrame(ttk.Frame):
 		procentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=10)
 		procentry['values'] = ['Single','Multiple']
 		procentry.current(0)
+		nstopentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		nstopentry['values'] = ['No','Yes']
+		nstopentry.current(0)
 
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -455,8 +459,10 @@ class ListCommandFrame(ttk.Frame):
 		headlessentry.grid(column = 0, row = 3, sticky=(E))
 		proclabel.grid(column = 0, row = 4, sticky=(W))
 		procentry.grid(column = 0, row = 4, sticky=(E))
+		nstoplabel.grid(column = 0, row = 5, sticky=(W))
+		nstopentry.grid(column = 0, row = 5, sticky=(E))
 
-		runButton.grid(column = 0, row = 5, sticky = (E))
+		runButton.grid(column = 0, row = 6, sticky = (E))
 		closeButton.grid(column = 0, row = 7, sticky = (E))
 	
 	def removeValue(self, event):
@@ -483,7 +489,7 @@ class ListCommandFrame(ttk.Frame):
 			run_module(comlist=[PYLOC, "modules/resybotv3.py", "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get())])
 		else:
 			for command in self.commandlist:
-				run_module(comlist=[PYLOC, "modules/resybotv3b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-p", '{}'.format(command['period']), "-r", '{}'.format(command['reservation_type']), "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get())])
+				run_module(comlist=[PYLOC, "modules/resybotv3b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-p", '{}'.format(command['period']), "-r", '{}'.format(command['reservation_type']), "-cp", profile, "-em", email, "-pw", password, "-hl", '{}'.format(kwargs['headless'].get()), "-ns", '{}'.format(kwargs['nstop'].get())])
 				
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
