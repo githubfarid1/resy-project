@@ -94,9 +94,8 @@ class Window(Tk):
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 
 	def gitPull(self):
-		# g = git.cmd.Git(os.getcwd())
 		self.gitme.pull()
-		# g.pull()		
+		run_module(comlist=[PIPLOC, "-r", "requirements.txt"])
 		messagebox.showinfo(title='Info', message='the scripts has updated, reopen the application...')
 		sys.exit()
 
@@ -143,7 +142,8 @@ class MainFrame(ttk.Frame):
 		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		periodlistButton = FrameButton(self, window, text="Update Period", class_frame=AddPeriodFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
-		setupChromiumButton = FrameButton(self, window, text="Chromium Profile Tester", class_frame=SetupChromiumFrame)
+		# setupChromiumButton = FrameButton(self, window, text="Chromium Profile Tester", class_frame=SetupChromiumFrame)
+		UpdateTokenButton = FrameButton(self, window, text="Update Profile Token", class_frame=UpdateTokenFrame)
 
 
 		# # # layout
@@ -154,7 +154,8 @@ class MainFrame(ttk.Frame):
 		reservationlistButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		periodlistButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		chromiumProfileButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		setupChromiumButton.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		# setupChromiumButton.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		UpdateTokenButton.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 
 class AddReservationFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -398,6 +399,50 @@ class SetupChromiumFrame(ttk.Frame):
 		profilelisttmp = json.load(file)
 		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
 		run_module(comlist=[PYLOC, "modules/chromium_setup.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
+
+class UpdateTokenFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+
+		self.columnconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+		self.columnconfigure(2, weight=1)
+		# self.columnconfigure(3, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+				
+		titleLabel = TitleLabel(self, 'Update Token Profile')
+		closeButton = CloseButton(self)
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileList = []
+		for text in [value['profilename'] for value in profilelisttmp]:
+			profileList.append(ttk.Button(self, text=text, command=lambda pro=text:self.chromeTester(pro)))
+
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=4)
+		closeButton.grid(column = 0, row = 6, sticky = (E, N, S), columnspan=4)
+
+		colnum = 0
+		rownum = 1
+		for profile in profileList:
+			if colnum == 3:
+				colnum = 0
+				rownum += 1
+			profile.grid(column = colnum, row = rownum, sticky=(W, E, N, S), padx=15, pady=5)
+			colnum += 1
+
+	def chromeTester(self, profile):
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
+		run_module(comlist=[PYLOC, "modules/update_token.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
 
 class ListCommandFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -857,7 +902,9 @@ def main():
 if __name__ == "__main__":
 	if platform == "linux" or platform == "linux2":
 		PYLOC = "python"
+		PIPLOC = "pip"
 	elif platform == "win32":
 		PYLOC = PYTHON_EXE
+		PIPLOC = os.getcwd() + os.sep + r"venv\Scripts\pip.exe"
 
 main()

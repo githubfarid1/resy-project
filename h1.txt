@@ -1,0 +1,15 @@
+ResyConfig
+ResyConfig specifies credentials for personal Resy accounts. Users should create a credentials.json file formatted as:
+
+{
+  "api_key": "<api-key>",
+  "token": "<api-token>",
+  "payment_method_id": <payment-method>,
+  "email": "<email>",
+  "password": "<password>"
+}
+These values can be found in requests made in the Network tab.
+
+api_key can be found in the request headers under the key Authorization in the format ResyAPI api_key="<api-key>"
+token can be found in the request headers under the key X-Resy-Auth-Token
+payment_method_id can be found in the request body to the endpoint /3/book

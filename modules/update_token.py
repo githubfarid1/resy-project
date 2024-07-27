@@ -1,0 +1,135 @@
+import os
+import time
+from datetime import datetime
+from playwright.sync_api import sync_playwright
+from dotenv import load_dotenv
+import logging
+import random
+import time
+from playwright_stealth import stealth_sync
+import logging
+import re
+import sys
+import argparse
+from subprocess import Popen, check_call
+from user_agent import generate_user_agent
+import json
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CHROME_EXE
+def login_to_resy(page, email, password):
+    """Login to Resy with enhanced stability and error handling."""
+    try:
+        page.wait_for_selector('.AnnouncementModal__icon-close', timeout=5000)
+        page.click('.AnnouncementModal__icon-close')
+    except Exception:
+        logging.info("No announcement modal to close.")
+    # breakpoint()
+    page.click("text=Log in", timeout=30000)
+    page.click("text=Use Email and Password instead", timeout=30000)
+
+    page.fill('input[name="email"]', email)
+    page.fill('input[name="password"]', password)
+    
+    page.click('[name="login_form"] button', timeout=10000)
+    page.evaluate("() => document.fonts.ready")
+
+def random_delay(min_seconds, max_seconds):
+    time.sleep(random.uniform(min_seconds, max_seconds))
+
+def intercept_request(request, profilename):
+    # print(request.url)
+    # we can update requests with custom headers
+    api_key = ''
+    token = ''
+    if "https://api.resy.com/2/config" in request.url:
+        # print(request.url)
+        # breakpoint()
+        try:
+            token = request.headers['x-resy-auth-token']
+            api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
+            # print(token, api_key)
+            file = open("profilelist.json", "r")
+            profilelist = json.load(file)
+            tmplist = []
+            for dl in profilelist:
+                if dl['profilename'] == profilename:
+                    tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token})
+                else:
+                    tmplist.append(dl)
+            with open("profilelist.json", "w") as final:
+                json.dump(tmplist, final)
+            input("token Updated.. " + CLOSE_MESSAGE)
+            sys.exit()
+        except:
+            return request        
+        # request.headers['x-secret-token'] = "123"
+    #     print("patched headers of a secret request")
+    # # or adjust sent data
+    # if request.method == "POST":
+    #     request.post_data = "patched"
+    #     print("patched POST request")
+    # input(token + "\n" + api_key)
+    return request
+
+def main():
+    # breakpoint()
+    parser = argparse.ArgumentParser(description="Chromium Setup")
+    parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
+    parser.add_argument('-em', '--email', type=str,help="Resy Email")
+    parser.add_argument('-pw', '--password', type=str,help="Resy Password")
+    args = parser.parse_args()
+        
+    if not args.chprofile or not args.email or not args.password:
+        input(" ".join(['Please add complete parameters, ex: python chromium_setup.py -cp [chrome_profile] -em [email] -pw [password]', CLOSE_MESSAGE]))
+        sys.exit()
+    
+    chrome_user_data = f"{CHROME_USER_DATA}\\{args.chprofile}"
+    error = True
+    try:
+        # user_agent = random.choice(user_agents)
+        with sync_playwright() as pr:
+            wargs = []
+            wargs.append('--v=1')
+            wargs.append('--no-sandbox')
+            wargs.append('--enable-features=NetworkService,NetworkServiceInProcess')
+            wargs.append('--enable-automation')
+            wargs.append('--disable-popup-blocking')
+            wargs.append('--disable-web-security')
+            wargs.append('--start-maximized')
+            browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
+                    headless=True, 
+                    args=wargs, 
+                    user_agent=generate_user_agent(),
+                    permissions=['geolocation', 'notifications'],
+                    java_script_enabled=True,
+                    no_viewport=True
+                    )
+            page = browser.pages[0]
+            stealth_sync(page)
+            # page.on("request", intercept_request)
+            page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
+
+		    # runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
+
+            page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
+            random_delay(2, 5)
+            # breakpoint()
+            if  page.query_selector('button.Button--login'):
+                login_to_resy(page, args.email, args.password)
+                message = "Logged in successfully."
+                logging.info(message)
+                print(message)
+                time.sleep(3)
+                browser.close()
+            error = False
+            sys.exit()
+            
+    except:
+        if error:
+            input("An error occurred..," + CLOSE_MESSAGE)
+        sys.exit()
+if __name__ == '__main__':
+    main()
