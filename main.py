@@ -87,15 +87,15 @@ class Window(Tk):
 		if not "up to date" in self.gitme.status():
 			pullButton['state'] = "normal"
 			pullButton['bg'] = "red"
-		else:
-			pullButton['state'] = "disabled"
+		# else:
+		# 	pullButton['state'] = "disabled"
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 
 	def gitPull(self):
 		self.gitme.pull()
-		run_module(comlist=[PIPLOC, "-r", "requirements.txt"])
+		run_module(comlist=[PIPLOC, "install", "-r", "requirements.txt"])
 		messagebox.showinfo(title='Info', message='the scripts has updated, reopen the application...')
 		sys.exit()
 

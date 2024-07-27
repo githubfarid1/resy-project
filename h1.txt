@@ -1,4 +1,3 @@
-ResyConfig
 ResyConfig specifies credentials for personal Resy accounts. Users should create a credentials.json file formatted as:
 
 {
