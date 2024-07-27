@@ -14,6 +14,7 @@ import argparse
 from subprocess import Popen, check_call
 from user_agent import generate_user_agent
 import json
+import requests
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -51,12 +52,28 @@ def intercept_request(request, profilename):
             token = request.headers['x-resy-auth-token']
             api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
             # print(token, api_key)
+            headers = {
+                "Authorization": f'ResyAPI api_key="{api_key}"',
+                "X-Resy-Auth-Token": token,
+                "X-Resy-Universal-Auth": token,
+                "Origin": "https://resy.com",
+                "X-origin": "https://resy.com",
+                "Referrer": "https://resy.com/",
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": generate_user_agent(),
+                'Cache-Control': "no-cache",
+            }
+            response = requests.get('https://api.resy.com/2/user', headers=headers)
+            try:
+                payment_method_id = response.json()['payment_method_id']
+            except:
+                payment_method_id = None
             file = open("profilelist.json", "r")
             profilelist = json.load(file)
             tmplist = []
             for dl in profilelist:
                 if dl['profilename'] == profilename:
-                    tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token})
+                    tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token, "payment_method_id": payment_method_id})
                 else:
                     tmplist.append(dl)
             with open("profilelist.json", "w") as final:
@@ -65,13 +82,6 @@ def intercept_request(request, profilename):
             sys.exit()
         except:
             return request        
-        # request.headers['x-secret-token'] = "123"
-    #     print("patched headers of a secret request")
-    # # or adjust sent data
-    # if request.method == "POST":
-    #     request.post_data = "patched"
-    #     print("patched POST request")
-    # input(token + "\n" + api_key)
     return request
 
 def main():
