@@ -8,7 +8,8 @@ from resy_bot.manager import ResyManager
 import requests
 from user_agent import generate_user_agent
 from datetime import datetime
-
+import random
+import time
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
@@ -16,6 +17,9 @@ from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CONTINUE_MESSAGE
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
+
+def random_delay(min_seconds, max_seconds):
+    time.sleep(random.uniform(min_seconds, max_seconds))
 
 def convert24(time):
     t = datetime.strptime(time, '%I:%M %p')
@@ -97,9 +101,16 @@ def main():
       "expected_drop_month":str(args.rdate).split("-")[1],
       "expected_drop_day":str(args.rdate).split("-")[2],
     }
-    wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
-    breakpoint()
-
+    while True:
+        try:
+            wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
+            input("Reservation Success..." + CLOSE_MESSAGE)
+            break
+        except:
+            tsleep = random.uniform(1, 5)
+            print("The Booking seat not Found, Bot sleep", int(tsleep), "seconds")
+            time.sleep(tsleep)
+            continue
 
 if __name__ == "__main__":
     main()
