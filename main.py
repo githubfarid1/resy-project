@@ -424,7 +424,7 @@ class UpdateTokenFrame(ttk.Frame):
 		file = open("profilelist.json", "r")
 		profilelisttmp = json.load(file)
 		profileList = []
-		for text in [value['profilename'] for value in profilelisttmp]:
+		for text in [value['profilename'] +"\n" + value["email"] for value in profilelisttmp]:
 			profileList.append(ttk.Button(self, text=text, command=lambda pro=text:self.chromeTester(pro)))
 
 		# layout
@@ -443,8 +443,8 @@ class UpdateTokenFrame(ttk.Frame):
 	def chromeTester(self, profile):
 		file = open("profilelist.json", "r")
 		profilelisttmp = json.load(file)
-		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
-		run_module(comlist=[PYLOC, "modules/update_token.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
+		profileselected = [value for value in profilelisttmp if value['profilename'] +"\n" + value["email"]==profile]
+		run_module(comlist=[PYLOC, "modules/update_token.py", "-cp", profileselected[0]['profilename'], "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
 
 class ListCommandFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -716,7 +716,6 @@ class ResyBotv1Frame(ttk.Frame):
 		# breakpoint()
 		run_module(comlist=[PYLOC, "modules/resybotv1.py", "-u", '{}'.format(kwargs['url'].get()), "-d", '{}'.format(kwargs['date'].get_date()), "-t", '{}'.format(formatted_time), "-s", '{}'.format(kwargs['seats'].get()), "-p", '{}'.format(kwargs['period'].get()), "-r", '{}'.format(kwargs['reservation'].get())])
 		
-
 class ResyBotv2Frame(ttk.Frame):
 	def __init__(self, window) -> None:
 		super().__init__(window)

@@ -137,8 +137,9 @@ def main():
             error = False
             sys.exit()
             
-    except:
+    except Exception as e:
         if error:
+            print(e)
             input("An error occurred..," + CLOSE_MESSAGE)
         sys.exit()
 if __name__ == '__main__':
