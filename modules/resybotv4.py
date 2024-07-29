@@ -49,6 +49,7 @@ def main():
     parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
     parser.add_argument('-rd', '--rdate', type=str,help="Run Date")
     parser.add_argument('-rt', '--rtime', type=str,help="Run Time")
+
     args = parser.parse_args()
     if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime:
         input(" ".join(['Please add complete parameters, ex: python resybotv4 -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime]', CLOSE_MESSAGE]))

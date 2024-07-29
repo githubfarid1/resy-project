@@ -569,7 +569,8 @@ class ListCommandV4Frame(ttk.Frame):
 		dlist = StringVar(value=commandlist)
 		self.valueslist = Listbox(self, width=120, height=10, listvariable=dlist)
 		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
-		chprofilelabel = Label(self, text="Chromium Profile: ")
+		chprofilelabel = Label(self, text="Account: ")
+		rotatelabel = Label(self, text="Rotating Account: ")
 		datelabel = Label(self, text="Bot Run Date: ")
 		timelabel = Label(self, text="Bot Run Time: ")
 		closeButton = CloseButton(self)
@@ -581,21 +582,26 @@ class ListCommandV4Frame(ttk.Frame):
 		timeentry.addHours12()
 		timeentry.addMinutes()
 		timeentry.addPeriod()
+		rotateentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		rotateentry['values'] = ['No','Yes']
+		rotateentry.current(0)
 
 
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, date=dateentry, time=timeentry))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, date=dateentry, time=timeentry, rotate=rotateentry))
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
 		self.valueslist.grid(column = 0, row = 1, sticky=(W))
 		chprofilelabel.grid(column = 0, row = 2, sticky=(W))
 		chprofileentry.grid(column = 0, row = 2, sticky=(E))
-		datelabel.grid(column = 0, row = 3, sticky=(W))
-		dateentry.grid(column = 0, row = 3, sticky=(E))
-		timelabel.grid(column = 0, row = 4, sticky=(W))
-		timeentry.grid(column = 0, row = 4, sticky=(E))
-		runButton.grid(column = 0, row = 5, sticky = (E))
-		closeButton.grid(column = 0, row = 6, sticky = (E))
+		rotatelabel.grid(column = 0, row = 3, sticky=(W))
+		rotateentry.grid(column = 0, row = 3, sticky=(E))
+		datelabel.grid(column = 0, row = 4, sticky=(W))
+		dateentry.grid(column = 0, row = 4, sticky=(E))
+		timelabel.grid(column = 0, row = 5, sticky=(W))
+		timeentry.grid(column = 0, row = 5, sticky=(E))
+		runButton.grid(column = 0, row = 6, sticky = (E))
+		closeButton.grid(column = 0, row = 7, sticky = (E))
 	
 	def removeValue(self, event):
 		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
@@ -614,7 +620,8 @@ class ListCommandV4Frame(ttk.Frame):
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
 
 	def run_process(self, **kwargs):
-		profile = kwargs['profile'].get().split("|")[0].strip()
+		file = open("profilelist.json", "r")
+		profilelist = [prof for prof in json.load(file)]
 		hour = str(kwargs['time'].hours())
 		period = kwargs['time'].period().replace(".","").upper()
 		if len(str(kwargs['time'].minutes())) == 1:
@@ -622,9 +629,23 @@ class ListCommandV4Frame(ttk.Frame):
 		else:
 			minute = str(kwargs['time'].minutes())
 		formatted_time = f"{hour}:{minute} {period}"
-
-
+		pronum = 0
 		for command in self.commandlist:
+			if kwargs['rotate'].get()=="No":
+				profile = kwargs['profile'].get().split("|")[0].strip()
+			else:
+				# rotating profile account
+				profile = None
+				while profile==None:
+					if  pronum == len(profilelist):
+						pronum = 0
+					for i in range(pronum, len(profilelist)):
+						if profilelist[i]['payment_method_id'] != None:
+							profile = profilelist[i]['profilename']
+							break
+						pronum += 1
+					pronum += 1
+			# print(profile)
 			run_module(comlist=[PYLOC, "modules/resybotv4.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-r", '{}'.format(command['reservation_type']), "-cp", profile,  "-rd", '{}'.format(kwargs['date'].get_date()), "-rt", formatted_time])
 
 class ResyBotv1Frame(ttk.Frame):
