@@ -67,7 +67,11 @@ def intercept_request(request, profilename):
             try:
                 payment_method_id = response.json()['payment_method_id']
             except:
-                payment_method_id = None
+                payment_method_id = 999999
+
+            if payment_method_id == None:
+                payment_method_id = 999999
+
             file = open("profilelist.json", "r")
             profilelist = json.load(file)
             tmplist = []
