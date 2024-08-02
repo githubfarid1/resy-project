@@ -91,34 +91,40 @@ def main():
         session = Session()    
         response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
         venue_id = response.json()['id']['resy']
-    except:
-        input("Please check Base URL value" + CLOSE_MESSAGE)
+        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
+        
+        if args.reservation == '<Not Set>':
+            reservation_type = None
+        else:
+            reservation_type = args.reservation
+        
+        reservation_config = {
+        "reservation_request": {
+        "party_size": args.seats,
+        "venue_id": venue_id,
+        "window_hours": args.rhours,
+        "prefer_early": False,
+        "ideal_date": args.date,
+        #   "days_in_advance": 14,
+        "ideal_hour": int(convert24(args.time).split(":")[0]),
+        "ideal_minute": int(convert24(args.time).split(":")[1]),
+        "preferred_type": reservation_type
+        },
+        "expected_drop_hour": int(convert24(args.rtime).split(":")[0]),
+        "expected_drop_minute": int(convert24(args.rtime).split(":")[1]), 
+        "expected_drop_year":str(args.rdate).split("-")[0],
+        "expected_drop_month":str(args.rdate).split("-")[1],
+        "expected_drop_day":str(args.rdate).split("-")[2],
+        }
+    except KeyError as e:
+        print("KeyError", e)
+        input("Error Accurred " + CLOSE_MESSAGE)
         sys.exit()
-    resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
+    except Exception as e:
+        print("Exception", e)
+        input("Error Accurred " + CLOSE_MESSAGE)
+        sys.exit()
     
-    if args.reservation == '<Not Set>':
-        reservation_type = None
-    else:
-        reservation_type = args.reservation
-    
-    reservation_config = {
-    "reservation_request": {
-      "party_size": args.seats,
-      "venue_id": venue_id,
-      "window_hours": args.rhours,
-      "prefer_early": False,
-      "ideal_date": args.date,
-    #   "days_in_advance": 14,
-      "ideal_hour": int(convert24(args.time).split(":")[0]),
-      "ideal_minute": int(convert24(args.time).split(":")[1]),
-      "preferred_type": reservation_type
-    },
-      "expected_drop_hour": int(convert24(args.rtime).split(":")[0]),
-      "expected_drop_minute": int(convert24(args.rtime).split(":")[1]), 
-      "expected_drop_year":str(args.rdate).split("-")[0],
-      "expected_drop_month":str(args.rdate).split("-")[1],
-      "expected_drop_day":str(args.rdate).split("-")[2],
-    }
     if args.nonstop == 'No':
         try:
             if args.runnow == "No":
@@ -126,14 +132,11 @@ def main():
             else:
                 run_now(resy_config=resy_config, reservation_config=reservation_config)
             input("Reservation Success..." + CLOSE_MESSAGE)
-        except  HTTPError as e:
-            input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
-        except ExhaustedRetriesError as e:
-            input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
-        except NoSlotsError as e:
+        except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
             input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
         except Exception as e:
-            input("Application Error: " + str(e) + CLOSE_MESSAGE)
+            input("Application Error: " + str(e) + TRY_MESSAGE)
+
     else:
         while True:
             try:
@@ -143,15 +146,7 @@ def main():
                     run_now(resy_config=resy_config, reservation_config=reservation_config)
                 input("Reservation Success..." + CLOSE_MESSAGE)
                 break
-            except  HTTPError as e:
-                print("Reservation Failed: " + str(e) + TRY_MESSAGE)
-                random_delay(2, 5)
-                continue
-            except ExhaustedRetriesError as e:
-                print("Reservation Failed: " + str(e) + TRY_MESSAGE)
-                random_delay(2, 5)
-                continue
-            except NoSlotsError as e:
+            except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                 print("Reservation Failed: " + str(e) + TRY_MESSAGE)
                 random_delay(2, 5)
                 continue
