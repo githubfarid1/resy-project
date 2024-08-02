@@ -84,7 +84,7 @@ class ResyApiAccess:
             )
 
         parsed_resp = FindResponseBody(**resp.json())
-
+        # breakpoint()
         return parsed_resp.results.venues[0].slots
 
     def get_booking_token(self, params: DetailsRequestBody) -> DetailsResponseBody:

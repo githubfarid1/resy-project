@@ -10,10 +10,13 @@ from user_agent import generate_user_agent
 from datetime import datetime
 import random
 import time
+from requests import Session, HTTPError
+from resy_bot.errors import NoSlotsError, ExhaustedRetriesError
+
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CONTINUE_MESSAGE
+from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CONTINUE_MESSAGE, TRY_MESSAGE
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
@@ -55,11 +58,12 @@ def main():
     parser.add_argument('-rd', '--rdate', type=str,help="Run Date")
     parser.add_argument('-rt', '--rtime', type=str,help="Run Time")
     parser.add_argument('-rh', '--rhours', type=str,help="Range Hours")
-    parser.add_argument('-rn', '--runnow', type=str,help="RUn Now")
+    parser.add_argument('-rn', '--runnow', type=str,help="Run Now")
+    parser.add_argument('-ns', '--nonstop', type=str,help="Non Stop Checking")
 
     args = parser.parse_args()
-    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow:
-        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop:
+        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop]', CLOSE_MESSAGE]))
         sys.exit()
     # breakpoint()
     file = open("profilelist.json", "r")
@@ -82,8 +86,9 @@ def main():
     params = {
         'url_slug': str(args.url).split("/")[-1],
         'location': str(args.url).split("/")[-3],
-    }    
-    response = requests.get('https://api.resy.com/3/venue', params=params, headers=headers)
+    }
+    session = Session()    
+    response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
     venue_id = response.json()['id']['resy']
 
     resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
@@ -111,28 +116,46 @@ def main():
       "expected_drop_month":str(args.rdate).split("-")[1],
       "expected_drop_day":str(args.rdate).split("-")[2],
     }
-    
-    try:
-        if args.runnow == "No":
-            wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
-        else:
-            run_now(resy_config=resy_config, reservation_config=reservation_config)
-
-        input("Reservation Success..." + CLOSE_MESSAGE)
-    except Exception as e:
-        input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
-
-
-    # while True:
-    #     try:
-    #         wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
-    #         input("Reservation Success..." + CLOSE_MESSAGE)
-    #         break
-    #     except:
-    #         tsleep = random.uniform(1, 5)
-    #         # print("The Booking seat not Found, Bot sleep", int(tsleep), "seconds")
-    #         time.sleep(tsleep)
-    #         continue
+    if args.nonstop == 'No':
+        try:
+            if args.runnow == "No":
+                wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
+            else:
+                run_now(resy_config=resy_config, reservation_config=reservation_config)
+            input("Reservation Success..." + CLOSE_MESSAGE)
+        except  HTTPError as e:
+            input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
+        except ExhaustedRetriesError as e:
+            input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
+        except NoSlotsError as e:
+            input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
+        except Exception as e:
+            input("Application Error: " + str(e) + CLOSE_MESSAGE)
+    else:
+        while True:
+            try:
+                if args.runnow == "No":
+                    wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
+                else:
+                    run_now(resy_config=resy_config, reservation_config=reservation_config)
+                input("Reservation Success..." + CLOSE_MESSAGE)
+                break
+            except  HTTPError as e:
+                print("Reservation Failed: " + str(e) + TRY_MESSAGE)
+                random_delay(2, 5)
+                continue
+            except ExhaustedRetriesError as e:
+                print("Reservation Failed: " + str(e) + TRY_MESSAGE)
+                random_delay(2, 5)
+                continue
+            except NoSlotsError as e:
+                print("Reservation Failed: " + str(e) + TRY_MESSAGE)
+                random_delay(2, 5)
+                continue
+            except Exception as e:
+                print("Application Error: " + str(e) + TRY_MESSAGE)
+                random_delay(2, 5)
+                continue
 
 if __name__ == "__main__":
     main()

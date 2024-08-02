@@ -55,6 +55,14 @@ def savejson(filename, valuelist, value=False):
 				json.dump(valuelist, final)
 		return True
 
+def convert24time(vtime):
+	hour = str(vtime.hours())
+	period = vtime.period().replace(".","").upper()
+	if len(str(vtime.minutes())) == 1:
+		minute = f"0{str(vtime.minutes())}"
+	else:
+		minute = str(vtime.minutes())
+	return f"{hour}:{minute} {period}"
 
 class Window(Tk):
 	def __init__(self) -> None:
@@ -65,7 +73,7 @@ class Window(Tk):
 		self.gitme.fetch()
 		# breakpoint()
 		self.grid_propagate(False)
-		width = 700
+		width = 800
 		height = 650
 		swidth = self.winfo_screenwidth()
 		sheight = self.winfo_screenheight()
@@ -656,7 +664,7 @@ class ListCommandV4bFrame(ttk.Frame):
 		# configure
 		file = open("commandlist.json", "r")
 		self.commandlist = json.load(file)
-		commandlist = ["{} | {} | {} | {} | {} | {} | {}".format(str(value['baseurl']).split("/")[-1], value['date'], value['time'], value['range_hours'], value['seats'], value['reservation_type'], value['email'] )  for value in self.commandlist]
+		commandlist = ["{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(value['baseurl']).split("/")[-1], value['date'], value['time'], value['range_hours'], value['seats'], value['reservation_type'], value['email'], value["run_date"], value['run_time'], value['runnow'], value['nonstop'] )  for value in self.commandlist]
 
 		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
@@ -670,39 +678,19 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.rowconfigure(3, weight=1)
 		self.rowconfigure(4, weight=1)
 		self.rowconfigure(5, weight=1)
-		self.rowconfigure(6, weight=1)
-		self.rowconfigure(7, weight=1)
-		self.rowconfigure(8, weight=1)
 		titleLabel = TitleLabel(self, text="List Bot's Command")
 
 		dlist = StringVar(value=commandlist)
-		self.valueslist = Listbox(self, width=120, height=10, listvariable=dlist)
+		self.valueslist = Listbox(self, width=140, height=10, listvariable=dlist)
 		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
-		runimlabel = Label(self, text="Run Immediately: ")
-		datelabel = Label(self, text="Bot Run Date: ")
-		timelabel = Label(self, text="Bot Run Time: ")
 		closeButton = CloseButton(self)
-		dateentry = DateEntry(self, width= 20, date_pattern='mm/dd/yyyy')
-		timeentry = SpinTimePickerOld(self)
-		timeentry.addHours12()
-		timeentry.addMinutes()
-		timeentry.addPeriod()
-		runimentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
-		runimentry['values'] = ['No','Yes']
-		runimentry.current(0)
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(date=dateentry, time=timeentry, runnow=runimentry))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
 		self.valueslist.grid(column = 0, row = 1, sticky=(W))
-		datelabel.grid(column = 0, row = 2, sticky=(W))
-		dateentry.grid(column = 0, row = 2, sticky=(E))
-		timelabel.grid(column = 0, row = 3, sticky=(W))
-		timeentry.grid(column = 0, row = 3, sticky=(E))
-		runimlabel.grid(column = 0, row = 4, sticky=(W))
-		runimentry.grid(column = 0, row = 4, sticky=(E))
-		runButton.grid(column = 0, row = 5, sticky = (E))
-		closeButton.grid(column = 0, row = 6, sticky = (E))
+		runButton.grid(column = 0, row = 2, sticky = (E))
+		closeButton.grid(column = 0, row = 3, sticky = (E))
 	
 	def removeValue(self, event):
 		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
@@ -714,7 +702,7 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.valueslist.delete(selection)
 		tmplist = []
 		for dl in self.commandlist:
-			if "{} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email']) != strselect:
+			if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop']) != strselect:
 				tmplist.append(dl)
 		self.commandlist = []
 		self.commandlist = tmplist.copy()
@@ -723,21 +711,12 @@ class ListCommandV4bFrame(ttk.Frame):
 	def run_process(self, **kwargs):
 		fileprofile = open("profilelist.json", "r")
 		profilelist = [prof for prof in json.load(fileprofile)]
-		hour = str(kwargs['time'].hours())
-		period = kwargs['time'].period().replace(".","").upper()
-		if len(str(kwargs['time'].minutes())) == 1:
-			minute = f"0{str(kwargs['time'].minutes())}"
-		else:
-			minute = str(kwargs['time'].minutes())
-		formatted_time = f"{hour}:{minute} {period}"
-		pronum = 0
 		for command in self.commandlist:
-			# breakpoint()
 			for prof in profilelist:
 				if prof['email']==command['email']:
 					profselected = prof['profilename']
 					break
-			run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-r", '{}'.format(command['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(kwargs['date'].get_date()), "-rt", formatted_time, "-rh", '{}'.format(command['range_hours']), "-rn", '{}'.format(kwargs['runnow'].get())])
+			run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-r", '{}'.format(command['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(command['run_date']), "-rt", command['run_time'], "-rh", '{}'.format(command['range_hours']), "-rn", '{}'.format(command['runnow']), "-ns", '{}'.format(command['nonstop'])])
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -1178,6 +1157,10 @@ class ResyBotv4bFrame(ttk.Frame):
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
 		self.rowconfigure(9, weight=1)
+		self.rowconfigure(10, weight=1)
+		self.rowconfigure(11, weight=1)
+		self.rowconfigure(12, weight=1)
+		self.rowconfigure(13, weight=1)
 		
 		# populate
 		titleLabel = TitleLabel(self, text="Resy Bot v4")
@@ -1188,9 +1171,13 @@ class ResyBotv4bFrame(ttk.Frame):
 		seatslabel = Label(self, text="Seats: ")
 		reservationlabel = Label(self, text="Reservation Type: ")
 		chprofilelabel = Label(self, text="Account: ")
+		runimlabel = Label(self, text="Run Immediately: ")
+		rundatelabel = Label(self, text="Bot Run Date: ")
+		runtimelabel = Label(self, text="Bot Run Time: ")
+		nstoplabel = Label(self, text="Nonstop Checking: ")
 
 		urlentry = Entry(self, width=80)
-		urlentry.insert(0, "https://resy.com/cities/new-york-ny/venues/zensushi-omakase")
+		urlentry.insert(0, "https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
 		dateentry = DateEntry(self, width= 20, date_pattern='mm/dd/yyyy')
 		timeentry = SpinTimePickerOld(self)
 		timeentry.addHours12()
@@ -1208,10 +1195,19 @@ class ResyBotv4bFrame(ttk.Frame):
 		chprofileentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=30)
 		chprofileentry['values'] = [profile for profile in PROFILE_LIST]
 		chprofileentry.current(0)
-
+		rundateentry = DateEntry(self, width= 20, date_pattern='mm/dd/yyyy')
+		runtimeentry = SpinTimePickerOld(self)
+		runtimeentry.addHours12()
+		runtimeentry.addMinutes()
+		runtimeentry.addPeriod()
+		runimentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		runimentry['values'] = ['No','Yes']
+		runimentry.current(0)
+		nstopentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		nstopentry['values'] = ['No','Yes']
+		nstopentry.current(0)
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Save Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry))
-		listButton = FrameButton(self, window, text="List Bookings", class_frame=ListCommandFrame)
+		saveButton = ttk.Button(self, text='Save Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry, run_date=rundateentry, run_time=runtimeentry, runnow=runimentry, nonstop=nstopentry))
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -1227,21 +1223,24 @@ class ResyBotv4bFrame(ttk.Frame):
 		seatsentry.grid(column = 0, row = 5, sticky=(E))
 		reservationlabel.grid(column = 0, row = 6, sticky=(W))
 		reservationentry.grid(column = 0, row = 6, sticky=(E))
-		chprofilelabel.grid(column = 0, row = 7, sticky=(W))
-		chprofileentry.grid(column = 0, row = 7, sticky=(E))
-		saveButton.grid(column = 0, row = 8, sticky = (E))
-		closeButton.grid(column = 0, row = 9, sticky = (E))
+		rundatelabel.grid(column = 0, row = 7, sticky=(W))
+		rundateentry.grid(column = 0, row = 7, sticky=(E))
+		runtimelabel.grid(column = 0, row = 8, sticky=(W))
+		runtimeentry.grid(column = 0, row = 8, sticky=(E))
+		runimlabel.grid(column = 0, row = 9, sticky=(W))
+		runimentry.grid(column = 0, row = 9, sticky=(E))
+		chprofilelabel.grid(column = 0, row = 10, sticky=(W))
+		chprofileentry.grid(column = 0, row = 10, sticky=(E))
+		nstoplabel.grid(column = 0, row = 11, sticky=(W))
+		nstopentry.grid(column = 0, row = 11, sticky=(E))
+		saveButton.grid(column = 0, row = 12, sticky = (E))
+		closeButton.grid(column = 0, row = 13, sticky = (E))
 
 	def savelist(self, **kwargs):
-		hour = str(kwargs['time'].hours())
-		period = kwargs['time'].period().replace(".","").upper()
-		if len(str(kwargs['time'].minutes())) == 1:
-			minute = f"0{str(kwargs['time'].minutes())}"
-		else:
-			minute = str(kwargs['time'].minutes())
-		formatted_time = f"{hour}:{minute} {period}"
+		formatted_time = convert24time(kwargs['time'])
+		formatted_runtime = convert24time(kwargs['run_time'])
 		# breakpoint()
-		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "reservation_type":kwargs['reservation'].get(), "email": kwargs['profile'].get().split("|")[1].strip(), "range_hours":kwargs['range_hours'].get() })
+		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "reservation_type":kwargs['reservation'].get(), "email": kwargs['profile'].get().split("|")[1].strip(), "range_hours":kwargs['range_hours'].get(), "run_date": str(kwargs['run_date'].get_date()), "run_time": formatted_runtime, "runnow": kwargs['runnow'].get(), "nonstop": kwargs['nonstop'].get()})
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
 		messagebox.showinfo("Message box","Booking list Saved")
 
