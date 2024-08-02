@@ -87,10 +87,13 @@ def main():
         'url_slug': str(args.url).split("/")[-1],
         'location': str(args.url).split("/")[-3],
     }
-    session = Session()    
-    response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
-    venue_id = response.json()['id']['resy']
-
+    try:
+        session = Session()    
+        response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
+        venue_id = response.json()['id']['resy']
+    except:
+        input("Please check Base URL value" + CLOSE_MESSAGE)
+        sys.exit()
     resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
     
     if args.reservation == '<Not Set>':
