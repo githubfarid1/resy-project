@@ -75,7 +75,7 @@ class ResyApiAccess:
         )
 
         resp = self.session.get(find_url, params=params.dict())
-
+        # breakpoint()
         logger.info(f"{datetime.now().isoformat()} Received response for ")
 
         if not resp.ok:

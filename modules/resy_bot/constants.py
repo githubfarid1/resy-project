@@ -2,7 +2,7 @@ from enum import Enum
 
 
 RESY_BASE_URL = "https://api.resy.com"
-N_RETRIES = 10
+N_RETRIES = 3
 SECONDS_TO_WAIT_BETWEEN_RETRIES = 0.05
 
 

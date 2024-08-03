@@ -90,6 +90,7 @@ def main():
     try:
         session = Session()    
         response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
+        # breakpoint()
         venue_id = response.json()['id']['resy']
         resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
         
@@ -148,11 +149,11 @@ def main():
                 break
             except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                 print("Reservation Failed: " + str(e) + TRY_MESSAGE)
-                random_delay(2, 5)
+                random_delay(10, 30)
                 continue
             except Exception as e:
                 print("Application Error: " + str(e) + TRY_MESSAGE)
-                random_delay(2, 5)
+                random_delay(10, 30)
                 continue
 
 if __name__ == "__main__":
