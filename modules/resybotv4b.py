@@ -16,7 +16,7 @@ from resy_bot.errors import NoSlotsError, ExhaustedRetriesError
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_SLEEP, MAX_SLEEP
+from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_IDLE_TIME, MAX_IDLE_TIME
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
@@ -148,7 +148,7 @@ def main():
         
         while True:
             # sleeptime = random.uniform(10, 30)
-            sleeptime = random.uniform(MIN_SLEEP, MAX_SLEEP)
+            sleeptime = random.uniform(MIN_IDLE_TIME, MAX_IDLE_TIME)
             try:
                 if args.runnow == "No":
                     wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
