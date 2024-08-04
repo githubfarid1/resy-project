@@ -67,7 +67,6 @@ class ResyApiAccess:
         return AuthResponseBody(**resp.json())
 
     def find_booking_slots(self, params: FindRequestBody) -> List[Slot]:
-        # breakpoint()
         find_url = RESY_BASE_URL + ResyEndpoints.FIND.value
 
         logger.info(
@@ -75,7 +74,6 @@ class ResyApiAccess:
         )
 
         resp = self.session.get(find_url, params=params.dict())
-        # breakpoint()
         logger.info(f"{datetime.now().isoformat()} Received response for ")
 
         if not resp.ok:
@@ -84,8 +82,11 @@ class ResyApiAccess:
             )
 
         parsed_resp = FindResponseBody(**resp.json())
-        # breakpoint()
-        return parsed_resp.results.venues[0].slots
+        #frd
+        if len(parsed_resp.results.venues) == 0:
+            raise IndexError("Date or vanue is not available")
+        else:
+            return parsed_resp.results.venues[0].slots
 
     def get_booking_token(self, params: DetailsRequestBody) -> DetailsResponseBody:
         details_url = RESY_BASE_URL + ResyEndpoints.DETAILS.value

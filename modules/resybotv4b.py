@@ -16,7 +16,7 @@ from resy_bot.errors import NoSlotsError, ExhaustedRetriesError
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
-from settings import CLOSE_MESSAGE, CHROME_USER_DATA, CONTINUE_MESSAGE, TRY_MESSAGE
+from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_SLEEP, MAX_SLEEP
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
@@ -27,6 +27,10 @@ def random_delay(min_seconds, max_seconds):
 def convert24(time):
     t = datetime.strptime(time, '%I:%M %p')
     return t.strftime('%H:%M')
+
+def convert24wsecond(time):
+    t = datetime.strptime(time, '%I:%M:%S %p')
+    return t.strftime('%H:%M:%S')
 
 def wait_for_drop_time(resy_config: dict, reservation_config: dict) -> str:
     logger.info("waiting for drop time!")
@@ -47,7 +51,6 @@ def run_now(resy_config: dict, reservation_config: dict) -> str:
     return manager.make_reservation_with_retries(timed_request.reservation_request)
 
 def main():
-    
     parser = argparse.ArgumentParser(description="Resy Bot v4")
     parser.add_argument('-u', '--url', type=str,help="Base URL")
     parser.add_argument('-d', '--date', type=str,help="Date wanted")
@@ -98,7 +101,7 @@ def main():
             reservation_type = None
         else:
             reservation_type = args.reservation
-        
+        # breakpoint()
         reservation_config = {
         "reservation_request": {
         "party_size": args.seats,
@@ -111,8 +114,9 @@ def main():
         "ideal_minute": int(convert24(args.time).split(":")[1]),
         "preferred_type": reservation_type
         },
-        "expected_drop_hour": int(convert24(args.rtime).split(":")[0]),
-        "expected_drop_minute": int(convert24(args.rtime).split(":")[1]), 
+        "expected_drop_hour": int(convert24wsecond(args.rtime).split(":")[0]),
+        "expected_drop_minute": int(convert24wsecond(args.rtime).split(":")[1]), 
+        "expected_drop_second": int(convert24wsecond(args.rtime).split(":")[2]), 
         "expected_drop_year":str(args.rdate).split("-")[0],
         "expected_drop_month":str(args.rdate).split("-")[1],
         "expected_drop_day":str(args.rdate).split("-")[2],
@@ -135,11 +139,16 @@ def main():
             input("Reservation Success..." + CLOSE_MESSAGE)
         except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
             input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
+        except IndexError as e:
+            input("Reservation Error: " + str(e) + CLOSE_MESSAGE)
         except Exception as e:
-            input("Application Error: " + str(e) + TRY_MESSAGE)
+            input("Application Error: " + str(e) + CLOSE_MESSAGE)
 
     else:
+        
         while True:
+            # sleeptime = random.uniform(10, 30)
+            sleeptime = random.uniform(MIN_SLEEP, MAX_SLEEP)
             try:
                 if args.runnow == "No":
                     wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)
@@ -149,11 +158,18 @@ def main():
                 break
             except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                 print("Reservation Failed: " + str(e) + TRY_MESSAGE)
-                random_delay(10, 30)
+                print("idle time", int(sleeptime), "seconds")
+                time.sleep(sleeptime)
+                continue
+            except IndexError as e:
+                print("Reservation Error: " + str(e) + TRY_MESSAGE)
+                print("idle time", int(sleeptime), "seconds")
+                time.sleep(sleeptime)
                 continue
             except Exception as e:
                 print("Application Error: " + str(e) + TRY_MESSAGE)
-                random_delay(10, 30)
+                print("idle time", int(sleeptime), "seconds")
+                time.sleep(sleeptime)
                 continue
 
 if __name__ == "__main__":

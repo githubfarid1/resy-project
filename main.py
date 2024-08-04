@@ -64,6 +64,20 @@ def convert24time(vtime):
 		minute = str(vtime.minutes())
 	return f"{hour}:{minute} {period}"
 
+def convert24timeSecond(vtime):
+	hour = str(vtime.hours())
+	period = vtime.period().replace(".","").upper()
+	if len(str(vtime.minutes())) == 1:
+		minute = f"0{str(vtime.minutes())}"
+	else:
+		minute = str(vtime.minutes())
+	if len(str(vtime.seconds())) == 1:
+		second = f"0{str(vtime.seconds())}"
+	else:
+		second = str(vtime.seconds())
+
+	return f"{hour}:{minute}:{second} {period}"
+
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
@@ -1199,7 +1213,15 @@ class ResyBotv4bFrame(ttk.Frame):
 		runtimeentry = SpinTimePickerOld(self)
 		runtimeentry.addHours12()
 		runtimeentry.addMinutes()
+		runtimeentry.addSeconds()
 		runtimeentry.addPeriod()
+		# runhourentry = Spinbox(self, from_=1, to=12, textvariable=StringVar(value=1), state="readonly", width=5)
+		# runminuteentry = Spinbox(self, from_=0, to=59, textvariable=StringVar(value=0), state="readonly", width=5)
+		# runsecondentry = Spinbox(self, from_=0, to=59, textvariable=StringVar(value=0), state="readonly", width=5)
+		# runperiodentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		# runperiodentry['values'] = ['PM','AM']
+		# runperiodentry.current(0)
+
 		runimentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
 		runimentry['values'] = ['No','Yes']
 		runimentry.current(0)
@@ -1227,6 +1249,7 @@ class ResyBotv4bFrame(ttk.Frame):
 		rundateentry.grid(column = 0, row = 7, sticky=(E))
 		runtimelabel.grid(column = 0, row = 8, sticky=(W))
 		runtimeentry.grid(column = 0, row = 8, sticky=(E))
+
 		runimlabel.grid(column = 0, row = 9, sticky=(W))
 		runimentry.grid(column = 0, row = 9, sticky=(E))
 		chprofilelabel.grid(column = 0, row = 10, sticky=(W))
@@ -1238,8 +1261,7 @@ class ResyBotv4bFrame(ttk.Frame):
 
 	def savelist(self, **kwargs):
 		formatted_time = convert24time(kwargs['time'])
-		formatted_runtime = convert24time(kwargs['run_time'])
-		# breakpoint()
+		formatted_runtime = convert24timeSecond(kwargs['run_time'])
 		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "reservation_type":kwargs['reservation'].get(), "email": kwargs['profile'].get().split("|")[1].strip(), "range_hours":kwargs['range_hours'].get(), "run_date": str(kwargs['run_date'].get_date()), "run_time": formatted_runtime, "runnow": kwargs['runnow'].get(), "nonstop": kwargs['nonstop'].get()})
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
 		messagebox.showinfo("Message box","Booking list Saved")

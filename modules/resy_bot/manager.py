@@ -109,6 +109,7 @@ class ResyManager:
             day=reservation_request.expected_drop_day,
             hour=reservation_request.expected_drop_hour,
             minute=reservation_request.expected_drop_minute,
+            second=reservation_request.expected_drop_second,
         )
 
     def make_reservation_at_opening_time(

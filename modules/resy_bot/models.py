@@ -58,6 +58,7 @@ class TimedReservationRequest(BaseModel):
     reservation_request: ReservationRequest
     expected_drop_hour: int
     expected_drop_minute: int
+    expected_drop_second: int
     expected_drop_year: int
     expected_drop_month: int
     expected_drop_day: int
