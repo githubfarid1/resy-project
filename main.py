@@ -695,42 +695,51 @@ class ListCommandV4bFrame(ttk.Frame):
 		titleLabel = TitleLabel(self, text="List Bot's Command")
 
 		dlist = StringVar(value=commandlist)
-		self.valueslist = Listbox(self, width=140, height=10, listvariable=dlist)
-		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		self.valueslist = Listbox(self, width=140, height=10, listvariable=dlist, selectmode="multiple")
+		# self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
 		closeButton = CloseButton(self)
 		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
+		removeButton = ttk.Button(self, text='Remove', command = lambda:self.removeSelection())
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
 		self.valueslist.grid(column = 0, row = 1, sticky=(W))
 		runButton.grid(column = 0, row = 2, sticky = (E))
+		removeButton.grid(column = 0, row = 2, sticky = (W))
 		closeButton.grid(column = 0, row = 3, sticky = (E))
 	
-	def removeValue(self, event):
+	def removeSelection(self):
 		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
 			return
 		selection = self.valueslist.curselection()
-		for i in self.valueslist.curselection():
-			strselect = self.valueslist.get(i)
-			messagebox.showinfo("Message box", f"`{strselect}` deleted..")
-		self.valueslist.delete(selection)
-		tmplist = []
-		for dl in self.commandlist:
-			if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration']) != strselect:
-				tmplist.append(dl)
-		self.commandlist = []
-		self.commandlist = tmplist.copy()
+		# breakpoint()
+		for i in selection[::-1]:
+			text = self.valueslist.get(i)
+			self.valueslist.delete(i)
+			
+			for idx, dl in enumerate(self.commandlist):
+				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration']) == text:
+					self.commandlist.remove(dl)
+					break
+		
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
+
 
 	def run_process(self, **kwargs):
 		fileprofile = open("profilelist.json", "r")
 		profilelist = [prof for prof in json.load(fileprofile)]
-		for command in self.commandlist:
-			for prof in profilelist:
-				if prof['email']==command['email']:
-					profselected = prof['profilename']
-					break
-			run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(command['baseurl']), "-d", '{}'.format(command['date']), "-t", '{}'.format(command['time']), "-s", '{}'.format(command['seats']), "-r", '{}'.format(command['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(command['run_date']), "-rt", command['run_time'], "-rh", '{}'.format(command['range_hours']), "-rn", '{}'.format(command['runnow']), "-ns", '{}'.format(command['nonstop']), "-dr", '{}'.format(command['duration'])])
+		selection = self.valueslist.curselection()
+		for i in selection:
+			text = self.valueslist.get(i)
+			for dl in self.commandlist:
+				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration']) == text:
+					for prof in profilelist:
+						if prof['email']==dl['email']:
+							profselected = prof['profilename']
+							break
+					
+					run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(dl['baseurl']), "-d", '{}'.format(dl['date']), "-t", '{}'.format(dl['time']), "-s", '{}'.format(dl['seats']), "-r", '{}'.format(dl['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(dl['run_date']), "-rt", dl['run_time'], "-rh", '{}'.format(dl['range_hours']), "-rn", '{}'.format(dl['runnow']), "-ns", '{}'.format(dl['nonstop']), "-dr", '{}'.format(dl['duration'])])
+
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:

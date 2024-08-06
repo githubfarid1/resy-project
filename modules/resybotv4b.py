@@ -147,8 +147,11 @@ def main():
             input("Application Error: " + str(e) + CLOSE_MESSAGE)
 
     else:
-         
-        stoptime = datetime.strptime(f"{args.rdate} {args.rtime}", '%Y-%m-%d %I:%M:%S %p') + timedelta(minutes = int(args.duration))
+        if args.runnow == "No": 
+            stoptime = datetime.strptime(f"{args.rdate} {args.rtime}", '%Y-%m-%d %I:%M:%S %p') + timedelta(minutes = int(args.duration))
+        else:
+            stoptime = datetime.now() + timedelta(minutes = int(args.duration))
+
         while True:
             # sleeptime = random.uniform(10, 30)
             if int(args.duration) != 0 and datetime.now() >= stoptime:
