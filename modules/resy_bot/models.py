@@ -10,6 +10,7 @@ class ResyConfig(BaseModel):
     payment_method_id: int
     email: str
     password: str
+    use_proxy: bool
 
     def get_authorization(self) -> str:
         return f'ResyAPI api_key="{self.api_key}"'

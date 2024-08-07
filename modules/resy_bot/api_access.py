@@ -1,7 +1,6 @@
 from datetime import datetime
 from requests import Session, HTTPError
 from typing import Dict, List
-
 from resy_bot.constants import RESY_BASE_URL, ResyEndpoints
 from resy_bot.logging import logging
 from resy_bot.models import (
@@ -16,13 +15,20 @@ from resy_bot.models import (
     BookRequestBody,
     BookResponseBody,
 )
+import os
+import sys
 from user_agent import generate_user_agent
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(os.path.dirname(current))
+sys.path.append(parent)
+from settings import PROXIES
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 
 
 def build_session(config: ResyConfig) -> Session:
+
     session = Session()
     headers = {
         "Authorization": config.get_authorization(),
@@ -36,7 +42,8 @@ def build_session(config: ResyConfig) -> Session:
         'Cache-Control': "no-cache",
     }
     session.headers.update(headers)
-
+    if config.use_proxy:
+        session.proxies.update(PROXIES)
     return session
 
 

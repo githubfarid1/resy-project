@@ -13,3 +13,7 @@ playwright install
 python main.py
 8....
 
+free proxy:
+https://scrapeops.io/
+user: opencartplugin@gmail.com
+pass: workshop21

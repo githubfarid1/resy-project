@@ -65,10 +65,11 @@ def main():
     parser.add_argument('-rn', '--runnow', type=str,help="Run Now")
     parser.add_argument('-ns', '--nonstop', type=str,help="Non Stop Checking")
     parser.add_argument('-dr', '--duration', type=str,help="Duration time")
+    parser.add_argument('-up', '--proxy', type=str,help="Use Proxy")
 
     args = parser.parse_args()
     if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration:
-        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration]', CLOSE_MESSAGE]))
+        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy]', CLOSE_MESSAGE]))
         sys.exit()
     # breakpoint()
     file = open("profilelist.json", "r")
@@ -97,7 +98,9 @@ def main():
         response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
         # breakpoint()
         venue_id = response.json()['id']['resy']
-        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"]}
+        use_proxy = True if args.proxy == 'Yes' else False
+        # breakpoint()
+        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "use_proxy":use_proxy}
         
         if args.reservation == '<Not Set>':
             reservation_type = None
@@ -152,6 +155,8 @@ def main():
         else:
             stoptime = datetime.now() + timedelta(minutes = int(args.duration))
 
+        if datetime.strptime(f"{args.rdate} {args.rtime}", '%Y-%m-%d %I:%M:%S %p') < datetime.now():
+            stoptime = datetime.now() + timedelta(minutes = int(args.duration))
         while True:
             # sleeptime = random.uniform(10, 30)
             if int(args.duration) != 0 and datetime.now() >= stoptime:

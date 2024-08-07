@@ -693,12 +693,15 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.rowconfigure(4, weight=1)
 		self.rowconfigure(5, weight=1)
 		titleLabel = TitleLabel(self, text="List Bot's Command")
+		proxylabel = Label(self, text="Use Proxy: ")
 
 		dlist = StringVar(value=commandlist)
 		self.valueslist = Listbox(self, width=140, height=10, listvariable=dlist, selectmode="multiple")
-		# self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		proxyentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
+		proxyentry['values'] = ['No','Yes']
+		proxyentry.current(0)
 		closeButton = CloseButton(self)
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(useproxy=proxyentry))
 		removeButton = ttk.Button(self, text='Remove', command = lambda:self.removeSelection())
 
 		# layout
@@ -706,7 +709,9 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.valueslist.grid(column = 0, row = 1, sticky=(W))
 		runButton.grid(column = 0, row = 2, sticky = (E))
 		removeButton.grid(column = 0, row = 2, sticky = (W))
-		closeButton.grid(column = 0, row = 3, sticky = (E))
+		proxylabel.grid(column = 0, row = 3, sticky = (W))
+		proxyentry.grid(column = 0, row = 3, sticky = (E))
+		closeButton.grid(column = 0, row = 4, sticky = (E))
 	
 	def removeSelection(self):
 		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
@@ -737,9 +742,7 @@ class ListCommandV4bFrame(ttk.Frame):
 						if prof['email']==dl['email']:
 							profselected = prof['profilename']
 							break
-					
-					run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(dl['baseurl']), "-d", '{}'.format(dl['date']), "-t", '{}'.format(dl['time']), "-s", '{}'.format(dl['seats']), "-r", '{}'.format(dl['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(dl['run_date']), "-rt", dl['run_time'], "-rh", '{}'.format(dl['range_hours']), "-rn", '{}'.format(dl['runnow']), "-ns", '{}'.format(dl['nonstop']), "-dr", '{}'.format(dl['duration'])])
-
+					run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(dl['baseurl']), "-d", '{}'.format(dl['date']), "-t", '{}'.format(dl['time']), "-s", '{}'.format(dl['seats']), "-r", '{}'.format(dl['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(dl['run_date']), "-rt", dl['run_time'], "-rh", '{}'.format(dl['range_hours']), "-rn", '{}'.format(dl['runnow']), "-ns", '{}'.format(dl['nonstop']), "-dr", '{}'.format(dl['duration']), "-up", '{}'.format(kwargs['useproxy'].get())])
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
