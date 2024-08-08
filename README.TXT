@@ -17,3 +17,11 @@ free proxy:
 https://scrapeops.io/
 user: opencartplugin@gmail.com
 pass: workshop21
+
+format residential proxy:
+PROXY_TYPE://USERNAME:PASSWORD@PROXY_ADDRESS:PORT_NUMBER
+example:
+PROXIES = {
+    'http': f'http://scrapeops:6456b40c-0bb9-4277-a24d-82901d1eae56@residential-proxy.scrapeops.io:8181',
+    'https': f'http://scrapeops:6456b40c-0bb9-4277-a24d-82901d1eae56@residential-proxy.scrapeops.io:8181',
+}

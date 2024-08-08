@@ -1,0 +1,1 @@
+[{"profilename": "scrapeops.io", "http_proxy": "http://scrapeops:6456b40c-0bb9-4277-a24d-82901d1eae56@residential-proxy.scrapeops.io:8181", "https_proxy": "http://scrapeops:6456b40c-0bb9-4277-a24d-82901d1eae56@residential-proxy.scrapeops.io:8181"}]

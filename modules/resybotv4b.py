@@ -68,16 +68,20 @@ def main():
     parser.add_argument('-up', '--proxy', type=str,help="Use Proxy")
 
     args = parser.parse_args()
-    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration:
+    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration:
         input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy]', CLOSE_MESSAGE]))
         sys.exit()
     # breakpoint()
+    
     file = open("profilelist.json", "r")
     profilelist = json.load(file)
     for profile in profilelist:
         if profile['profilename'] == args.chprofile:
             break
     # breakpoint()
+    print("******************************************************************\n")
+    logger.info(f"\nBooking Info:\nURL: {args.url}\nDate Wanted: {args.date}\nTime Wanted: {args.time}\nSeats:  {args.seats}\nReservation Type: {args.reservation}\nAccount: {profile['email']}\nBot Run Date: {args.rdate}\nBot Run Time: {args.rtime}\nRange Hours: {args.rhours}\nRun Immediately: {args.runnow}\nNon Stop Checking: {args.nonstop}\nBot Duration (Minutes): {args.duration}\nProxy: {args.proxy}\n")
+    print("******************************************************************\n\n")
     headers = {
         "Authorization": 'ResyAPI api_key="{}"'.format(profile['api_key']),
         "X-Resy-Auth-Token": profile['token'],
@@ -96,11 +100,16 @@ def main():
     try:
         session = Session()    
         response = session.get('https://api.resy.com/3/venue', params=params, headers=headers)
-        # breakpoint()
         venue_id = response.json()['id']['resy']
-        use_proxy = True if args.proxy == 'Yes' else False
-        # breakpoint()
-        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "use_proxy":use_proxy}
+        https_proxy = ''
+        http_proxy = ''
+        if args.proxy != '<Not Set>':
+            file = open("proxylist.json", "r")
+            listvalue = json.load(file)
+            proxy = [prof for prof in listvalue if prof['profilename']==args.proxy]
+            http_proxy = proxy[0]['http_proxy']
+            https_proxy = proxy[0]['https_proxy']
+        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy}
         
         if args.reservation == '<Not Set>':
             reservation_type = None

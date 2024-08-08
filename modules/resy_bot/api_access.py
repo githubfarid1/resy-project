@@ -15,13 +15,13 @@ from resy_bot.models import (
     BookRequestBody,
     BookResponseBody,
 )
-import os
-import sys
 from user_agent import generate_user_agent
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(os.path.dirname(current))
-sys.path.append(parent)
-from settings import PROXIES
+# import os
+# import sys
+# current = os.path.dirname(os.path.realpath(__file__))
+# parent = os.path.dirname(os.path.dirname(current))
+# sys.path.append(parent)
+# from settings import PROXIES
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
@@ -42,8 +42,12 @@ def build_session(config: ResyConfig) -> Session:
         'Cache-Control': "no-cache",
     }
     session.headers.update(headers)
-    if config.use_proxy:
-        session.proxies.update(PROXIES)
+    if config.http_proxy != '':
+        proxies = {
+            'http': config.http_proxy,
+            'https': config.https_proxy,
+        }
+        session.proxies.update(proxies)
     return session
 
 

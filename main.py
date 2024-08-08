@@ -88,7 +88,7 @@ class Window(Tk):
 		# breakpoint()
 		self.grid_propagate(False)
 		width = 800
-		height = 650
+		height = 700
 		swidth = self.winfo_screenwidth()
 		sheight = self.winfo_screenheight()
 		newx = int((swidth/2) - (width/2))
@@ -169,6 +169,7 @@ class MainFrame(ttk.Frame):
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
 		# setupChromiumButton = FrameButton(self, window, text="Chromium Profile Tester", class_frame=SetupChromiumFrame)
 		UpdateTokenButton = FrameButton(self, window, text="Update Profile Token", class_frame=UpdateTokenFrame)
+		proxyProfileButton = FrameButton(self, window, text="Update Proxy Profle", class_frame=ProxyProfileFrame)
 
 
 		# # # layout
@@ -182,6 +183,7 @@ class MainFrame(ttk.Frame):
 		chromiumProfileButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		# setupChromiumButton.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		UpdateTokenButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		proxyProfileButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 
 class AddReservationFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -330,7 +332,7 @@ class ChromiumProfileFrame(ttk.Frame):
 		self.rowconfigure(7, weight=1)
 		self.rowconfigure(8, weight=1)
 		titleLabel = TitleLabel(self, text="Update Chromium Profile")
-		profilenamentry = EntryWithPlaceholder(self, width=80, placeholder="Profile Name (No Space allowed)")
+		profilenamentry = EntryWithPlaceholder(self, width=80, placeholder="Profile Name (Space Not allowed)")
 		emailentry = EntryWithPlaceholder(self, width=80, placeholder="Email")
 		passwordentry = EntryWithPlaceholder(self, width=80, placeholder="Password")
 
@@ -379,6 +381,86 @@ class ChromiumProfileFrame(ttk.Frame):
 		kwargs['profilename'].delete(0, END)
 		kwargs['email'].delete(0, END)
 		kwargs['password'].delete(0, END)
+		
+		# messagebox.showinfo("Message box","New Period added..")
+
+class ProxyProfileFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("proxylist.json", "r")
+		self.proxylist = json.load(file)
+		PROXY_LIST = [f"{value['profilename']} | {value['http_proxy']} | {value['https_proxy']}" for value in self.proxylist]
+		# setlist = set(tmplist)
+		# PROFILE_LIST = sorted(self.profilelist, key=str.casefold)
+		# breakpoint()
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		self.rowconfigure(9, weight=1)
+		self.rowconfigure(10, weight=1)
+		self.rowconfigure(11, weight=1)
+		self.rowconfigure(12, weight=1)
+
+		titleLabel = TitleLabel(self, text="Update Proxy Profile")
+		profilenamentry = EntryWithPlaceholder(self, width=110, placeholder="Profile Name (Space is not allowed)")
+		httpproxyentry = EntryWithPlaceholder(self, width=110, placeholder="HTTP Proxy: proxy_type://username:password@proxy_address:port_number")
+		httpsproxyentry = EntryWithPlaceholder(self, width=110, placeholder="HTTPS Proxy: proxy_type://username:password@proxy_address:port_number")
+
+
+		dlist = StringVar(value=PROXY_LIST)
+		self.valueslist = Listbox(self, width=110, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(profilename=profilenamentry, http_proxy=httpproxyentry, https_proxy=httpsproxyentry, valuelist=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		profilenamentry.grid(column = 0, row = 1, sticky=(W))
+		httpproxyentry.grid(column = 0, row = 2, sticky=(W))
+		httpsproxyentry.grid(column = 0, row = 3, sticky=(W))
+
+		self.valueslist.grid(column = 0, row = 4, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		closeButton.grid(column = 0, row = 4, sticky = (E, S))
+	
+	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+			strselect = self.valueslist.get(i).split(" | ")[0]
+			messagebox.showinfo("Message box", f"`{strselect}` deleted..")
+		self.valueslist.delete(selection)
+		tmplist = []
+		for dl in self.proxylist:
+			if dl['profilename'] != strselect:
+				tmplist.append(dl)
+		self.proxylist = tmplist.copy()
+		savejson(filename="proxylist.json", valuelist=self.proxylist)
+
+	def addlist(self, **kwargs):
+		self.proxylist.append({"profilename": kwargs['profilename'].get(), "http_proxy": kwargs['http_proxy'].get(), "https_proxy": kwargs['https_proxy'].get()})
+		if savejson(filename="proxylist.json", valuelist=self.proxylist, value=kwargs['profilename'].get()):
+			kwargs['valuelist'].insert(0, f"{kwargs['profilename'].get()} | {kwargs['http_proxy'].get()} | {kwargs['https_proxy'].get()}")
+		else:
+			# breakpoint()
+			self.proxylist.pop()
+		
+		kwargs['profilename'].delete(0, END)
+		kwargs['http_proxy'].delete(0, END)
+		kwargs['https_proxy'].delete(0, END)
 		
 		# messagebox.showinfo("Message box","New Period added..")
 
@@ -678,7 +760,7 @@ class ListCommandV4bFrame(ttk.Frame):
 		# configure
 		file = open("commandlist.json", "r")
 		self.commandlist = json.load(file)
-		commandlist = ["{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(value['baseurl']).split("/")[-1], value['date'], value['time'], value['range_hours'], value['seats'], value['reservation_type'], value['email'], value["run_date"], value['run_time'], value['runnow'], value['nonstop'], value['duration'] )  for value in self.commandlist]
+		commandlist = ["{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(value['baseurl']).split("/")[-1], value['date'], value['time'], value['range_hours'], value['seats'], value['reservation_type'], value['email'], value["run_date"], value['run_time'], value['runnow'], value['nonstop'], value['duration'], value['proxy'] )  for value in self.commandlist]
 
 		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
@@ -693,15 +775,11 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.rowconfigure(4, weight=1)
 		self.rowconfigure(5, weight=1)
 		titleLabel = TitleLabel(self, text="List Bot's Command")
-		proxylabel = Label(self, text="Use Proxy: ")
 
 		dlist = StringVar(value=commandlist)
 		self.valueslist = Listbox(self, width=140, height=10, listvariable=dlist, selectmode="multiple")
-		proxyentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=5)
-		proxyentry['values'] = ['No','Yes']
-		proxyentry.current(0)
 		closeButton = CloseButton(self)
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(useproxy=proxyentry))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process())
 		removeButton = ttk.Button(self, text='Remove', command = lambda:self.removeSelection())
 
 		# layout
@@ -709,9 +787,7 @@ class ListCommandV4bFrame(ttk.Frame):
 		self.valueslist.grid(column = 0, row = 1, sticky=(W))
 		runButton.grid(column = 0, row = 2, sticky = (E))
 		removeButton.grid(column = 0, row = 2, sticky = (W))
-		proxylabel.grid(column = 0, row = 3, sticky = (W))
-		proxyentry.grid(column = 0, row = 3, sticky = (E))
-		closeButton.grid(column = 0, row = 4, sticky = (E))
+		closeButton.grid(column = 0, row = 3, sticky = (E))
 	
 	def removeSelection(self):
 		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
@@ -723,7 +799,7 @@ class ListCommandV4bFrame(ttk.Frame):
 			self.valueslist.delete(i)
 			
 			for idx, dl in enumerate(self.commandlist):
-				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration']) == text:
+				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration'], dl['proxy']) == text:
 					self.commandlist.remove(dl)
 					break
 		
@@ -737,12 +813,12 @@ class ListCommandV4bFrame(ttk.Frame):
 		for i in selection:
 			text = self.valueslist.get(i)
 			for dl in self.commandlist:
-				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration']) == text:
+				if "{} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}".format(str(dl['baseurl']).split("/")[-1], dl['date'], dl['time'], dl['range_hours'], dl['seats'], dl['reservation_type'], dl['email'], dl["run_date"], dl['run_time'], dl['runnow'], dl['nonstop'], dl['duration'], dl['proxy']) == text:
 					for prof in profilelist:
 						if prof['email']==dl['email']:
 							profselected = prof['profilename']
 							break
-					run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(dl['baseurl']), "-d", '{}'.format(dl['date']), "-t", '{}'.format(dl['time']), "-s", '{}'.format(dl['seats']), "-r", '{}'.format(dl['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(dl['run_date']), "-rt", dl['run_time'], "-rh", '{}'.format(dl['range_hours']), "-rn", '{}'.format(dl['runnow']), "-ns", '{}'.format(dl['nonstop']), "-dr", '{}'.format(dl['duration']), "-up", '{}'.format(kwargs['useproxy'].get())])
+					run_module(comlist=[PYLOC, "modules/resybotv4b.py", "-u", '{}'.format(dl['baseurl']), "-d", '{}'.format(dl['date']), "-t", '{}'.format(dl['time']), "-s", '{}'.format(dl['seats']), "-r", '{}'.format(dl['reservation_type']), "-cp", profselected,  "-rd", '{}'.format(dl['run_date']), "-rt", dl['run_time'], "-rh", '{}'.format(dl['range_hours']), "-rn", '{}'.format(dl['runnow']), "-ns", '{}'.format(dl['nonstop']), "-dr", '{}'.format(dl['duration']), "-up", '{}'.format(dl['proxy'])])
 
 class ResyBotv1Frame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -1158,11 +1234,12 @@ class ResyBotv4bFrame(ttk.Frame):
 		setlist = set(tmplist)
 		RESERVATION_LIST = sorted(list(setlist), key=str.casefold)
 
-		file = open("periodlist.json", "r")
+		file = open("proxylist.json", "r")
 		listvalue = json.load(file)
-		tmplist = [value for value in listvalue]
+		tmplist = [value['profilename'] for value in listvalue]
+		tmplist.append("<Not Set>")
 		setlist = set(tmplist)
-		PERIOD_LIST = sorted(list(setlist), key=str.casefold)
+		PROXY_LIST = sorted(list(setlist), key=str.casefold)
 
 		file = open("profilelist.json", "r")
 		self.profilelist = json.load(file)
@@ -1203,6 +1280,7 @@ class ResyBotv4bFrame(ttk.Frame):
 		runtimelabel = Label(self, text="Bot Run Time: ")
 		nstoplabel = Label(self, text="Nonstop Checking: ")
 		durationlabel = Label(self, text="Bot Duration in Minutes: ")
+		proxylabel = Label(self, text="Proxy: ")
 
 		urlentry = Entry(self, width=80)
 		urlentry.insert(0, "https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
@@ -1236,9 +1314,12 @@ class ResyBotv4bFrame(ttk.Frame):
 		nstopentry['values'] = ['No','Yes']
 		nstopentry.current(0)
 		durationentry = Spinbox(self, from_=0, to=600, textvariable=StringVar(value=0), width=5)
+		proxyentry = ttk.Combobox(self, textvariable=StringVar(), state="readonly", width=30)
+		proxyentry['values'] = [proxy for proxy in PROXY_LIST]
+		proxyentry.current(0)
 
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Save Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry, run_date=rundateentry, run_time=runtimeentry, runnow=runimentry, nonstop=nstopentry, duration=durationentry))
+		saveButton = ttk.Button(self, text='Save Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry, run_date=rundateentry, run_time=runtimeentry, runnow=runimentry, nonstop=nstopentry, duration=durationentry, proxy=proxyentry))
 		
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
@@ -1267,13 +1348,15 @@ class ResyBotv4bFrame(ttk.Frame):
 		nstopentry.grid(column = 0, row = 11, sticky=(E))
 		durationlabel.grid(column = 0, row = 12, sticky=(W))
 		durationentry.grid(column = 0, row = 12, sticky=(E))
-		saveButton.grid(column = 0, row = 13, sticky = (E))
-		closeButton.grid(column = 0, row = 14, sticky = (E))
+		proxylabel.grid(column = 0, row = 13, sticky=(W))
+		proxyentry.grid(column = 0, row = 13, sticky=(E))
+		saveButton.grid(column = 0, row = 14, sticky = (E))
+		closeButton.grid(column = 0, row = 15, sticky = (E))
 
 	def savelist(self, **kwargs):
 		formatted_time = convert24time(kwargs['time'])
 		formatted_runtime = convert24timeSecond(kwargs['run_time'])
-		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "reservation_type":kwargs['reservation'].get(), "email": kwargs['profile'].get().split("|")[1].strip(), "range_hours":kwargs['range_hours'].get(), "run_date": str(kwargs['run_date'].get_date()), "run_time": formatted_runtime, "runnow": kwargs['runnow'].get(), "nonstop": kwargs['nonstop'].get(), "duration":kwargs['duration'].get()})
+		self.commandlist.append({"baseurl":kwargs['url'].get(), "date": str(kwargs['date'].get_date()), "time": formatted_time, "seats":kwargs['seats'].get(), "reservation_type":kwargs['reservation'].get(), "email": kwargs['profile'].get().split("|")[1].strip(), "range_hours":kwargs['range_hours'].get(), "run_date": str(kwargs['run_date'].get_date()), "run_time": formatted_runtime, "runnow": kwargs['runnow'].get(), "nonstop": kwargs['nonstop'].get(), "duration":kwargs['duration'].get(), "proxy": kwargs['proxy'].get()})
 		savejson(filename="commandlist.json", valuelist=self.commandlist)
 		messagebox.showinfo("Message box","Booking list Saved")
 
