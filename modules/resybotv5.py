@@ -67,22 +67,21 @@ def main():
     parser.add_argument('-ns', '--nonstop', type=str,help="Non Stop Checking")
     parser.add_argument('-dr', '--duration', type=str,help="Duration time")
     parser.add_argument('-up', '--proxy', type=str,help="Use Proxy")
+    parser.add_argument('-re', '--retry', type=str,help="Retry Count")
+    parser.add_argument('-mn', '--minidle', type=str,help="Min Idle Time")
+    parser.add_argument('-mx', '--maxidle', type=str,help="Max Idle Time")
 
     args = parser.parse_args()
-    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration:
-        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle:
+        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle]', CLOSE_MESSAGE]))
         sys.exit()
     # breakpoint()
     
     file = open("profilelist.json", "r")
     profilelist = json.load(file)
     for profile in profilelist:
-        if profile['profilename'] == args.chprofile:
+        if profile['email'] == args.chprofile:
             break
-    # breakpoint()
-    # print("******************************************************************\n")
-    # logger.info(f"\nBooking Info:\nURL: {args.url}\nDate Wanted: {args.date}\nTime Wanted: {args.time}\nSeats:  {args.seats}\nReservation Type: {args.reservation}\nAccount: {profile['email']}\nBot Run Date: {args.rdate}\nBot Run Time: {args.rtime}\nRange Hours: {args.rhours}\nRun Immediately: {args.runnow}\nNon Stop Checking: {args.nonstop}\nBot Duration (Minutes): {args.duration}\nProxy: {args.proxy}\n")
-    # print("******************************************************************\n\n")
     myTable = PrettyTable(["KEY","VALUE"])
     myTable.align ="l"
     myTable.add_row(["Restaurant", args.url.split("/")[-1]])
@@ -98,6 +97,9 @@ def main():
     myTable.add_row(["Non Stop Checking", args.nonstop])
     myTable.add_row(["Bot Duration", f"{args.duration} Minute"])
     myTable.add_row(["Proxy", args.proxy])
+    myTable.add_row(["Retry Count", args.retry])
+    myTable.add_row(["Min Idle Time", args.minidle])
+    myTable.add_row(["Max Idle Time", args.maxidle])
     # myTable.add_row(["URL", args.url])
     print(myTable)
     # breakpoint()
@@ -128,7 +130,7 @@ def main():
             proxy = [prof for prof in listvalue if prof['profilename']==args.proxy]
             http_proxy = proxy[0]['http_proxy']
             https_proxy = proxy[0]['https_proxy']
-        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy}
+        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry)}
         
         if args.reservation == '<Not Set>':
             reservation_type = None
@@ -190,7 +192,7 @@ def main():
             if int(args.duration) != 0 and datetime.now() >= stoptime:
                 input(f"Duration time reached -> {args.duration} minutes")
                 break
-            sleeptime = random.uniform(MIN_IDLE_TIME, MAX_IDLE_TIME)
+            sleeptime = random.uniform(int(args.minidle), int(args.maxidle))
             try:
                 if args.runnow == "No":
                     wait_for_drop_time(resy_config=resy_config, reservation_config=reservation_config)

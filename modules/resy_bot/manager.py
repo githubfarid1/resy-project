@@ -31,7 +31,7 @@ class ResyManager:
         selector = SimpleSelector()
         retry_config = ReservationRetriesConfig(
             seconds_between_retries=SECONDS_TO_WAIT_BETWEEN_RETRIES,
-            n_retries=N_RETRIES,
+            n_retries=config.retry_count,
         )
         return cls(config, api_access, selector, retry_config)
 

@@ -12,6 +12,7 @@ class ResyConfig(BaseModel):
     password: str
     http_proxy: str
     https_proxy: str
+    retry_count: int
 
     def get_authorization(self) -> str:
         return f'ResyAPI api_key="{self.api_key}"'
