@@ -1,0 +1,18 @@
+from pathlib import Path
+import os
+import json
+PYTHON_EXE = os.getcwd() + os.sep + r"venv\Scripts\python.exe"
+CHROME_USER_DATA = os.getcwd() + os.sep + "chrome_profiles"
+CLOSE_MESSAGE=" --> Press any key to close..."
+CONTINUE_MESSAGE=" --> Bot will go to next job..."
+TRY_MESSAGE=" --> Bot will try again..."
+CHROME_EXE = r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
+RETRY_VALUE = 10
+MIN_IDLE_TIME = 1
+MAX_IDLE_TIME = 2
+
+PROXY_API_KEY = '6456b40c-0bb9-4277-a24d-82901d1eae56'
+PROXIES = {
+    'http': f'http://scrapeops:{PROXY_API_KEY}@residential-proxy.scrapeops.io:8181',
+    'https': f'http://scrapeops:{PROXY_API_KEY}@residential-proxy.scrapeops.io:8181',
+}
