@@ -47,46 +47,46 @@ def intercept_request(request, profilename):
     token = ''
     if "https://api.resy.com/2/config" in request.url:
         print(request.url)
-        breakpoint()
-        try:
-            token = request.headers['x-resy-auth-token']
-            api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
-            print(token, api_key)
-            headers = {
-                "Authorization": f'ResyAPI api_key="{api_key}"',
-                "X-Resy-Auth-Token": token,
-                "X-Resy-Universal-Auth": token,
-                "Origin": "https://resy.com",
-                "X-origin": "https://resy.com",
-                "Referrer": "https://resy.com/",
-                "Accept": "application/json, text/plain, */*",
-                "User-Agent": generate_user_agent(),
-                'Cache-Control': "no-cache",
-            }
-            response = requests.get('https://api.resy.com/2/user', headers=headers)
-            try:
-                payment_method_id = response.json()['payment_method_id']
-            except:
-                payment_method_id = 999999
+    #     breakpoint()
+    #     try:
+    #         token = request.headers['x-resy-auth-token']
+    #         api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
+    #         print(token, api_key)
+    #         headers = {
+    #             "Authorization": f'ResyAPI api_key="{api_key}"',
+    #             "X-Resy-Auth-Token": token,
+    #             "X-Resy-Universal-Auth": token,
+    #             "Origin": "https://resy.com",
+    #             "X-origin": "https://resy.com",
+    #             "Referrer": "https://resy.com/",
+    #             "Accept": "application/json, text/plain, */*",
+    #             "User-Agent": generate_user_agent(),
+    #             'Cache-Control': "no-cache",
+    #         }
+    #         response = requests.get('https://api.resy.com/2/user', headers=headers)
+    #         try:
+    #             payment_method_id = response.json()['payment_method_id']
+    #         except:
+    #             payment_method_id = 999999
 
-            if payment_method_id == None:
-                payment_method_id = 999999
+    #         if payment_method_id == None:
+    #             payment_method_id = 999999
 
-            file = open("profilelist.json", "r")
-            profilelist = json.load(file)
-            tmplist = []
-            for dl in profilelist:
-                if dl['profilename'] == profilename:
-                    tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token, "payment_method_id": payment_method_id})
-                else:
-                    tmplist.append(dl)
-            with open("profilelist.json", "w") as final:
-                json.dump(tmplist, final)
-            input("token Updated.. " + CLOSE_MESSAGE)
-            sys.exit()
-        except:
-            return request        
-    return request
+    #         file = open("profilelist.json", "r")
+    #         profilelist = json.load(file)
+    #         tmplist = []
+    #         for dl in profilelist:
+    #             if dl['profilename'] == profilename:
+    #                 tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token, "payment_method_id": payment_method_id})
+    #             else:
+    #                 tmplist.append(dl)
+    #         with open("profilelist.json", "w") as final:
+    #             json.dump(tmplist, final)
+    #         input("token Updated.. " + CLOSE_MESSAGE)
+    #         sys.exit()
+    #     except:
+    #         return request        
+    # return request
 
 def main():
     # breakpoint()
