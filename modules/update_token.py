@@ -47,7 +47,7 @@ def intercept_request(request, profilename):
     token = ''
     if "https://api.resy.com/2/config" in request.url:
         print(request.url)
-        breakpoint()
+        # breakpoint()
         try:
             token = request.headers['x-resy-auth-token']
             api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
