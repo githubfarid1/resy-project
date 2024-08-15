@@ -134,10 +134,11 @@ def main():
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
-                page.goto("https://resy.com", wait_until="networkidle", timeout=20000)
+                
                 logging.info(message)
                 print(message)
                 time.sleep(3)
+                page.goto("https://resy.com", wait_until="networkidle", timeout=20000)
                 browser.close()
             error = False
             sys.exit()
