@@ -100,7 +100,7 @@ def main():
         input(" ".join(['Please add complete parameters, ex: python chromium_setup.py -cp [chrome_profile] -em [email] -pw [password]', CLOSE_MESSAGE]))
         sys.exit()
     
-    chrome_user_data = f"{CHROME_USER_DATA}\\{args.chprofile}"
+    chrome_user_data = f"{CHROME_USER_DATA}{os.sep}{args.chprofile}"
     error = True
     try:
         # user_agent = random.choice(user_agents)
