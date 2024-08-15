@@ -41,7 +41,7 @@ def random_delay(min_seconds, max_seconds):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
 def intercept_request(request, profilename):
-    # print(request.url)
+    print(request.url)
     # we can update requests with custom headers
     api_key = ''
     token = ''
