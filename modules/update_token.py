@@ -124,12 +124,11 @@ def main():
             page = browser.pages[0]
             stealth_sync(page)
             # page.on("request", intercept_request)
-            # page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
+            page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
 
 		    # runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
-            # breakpoint()
+            breakpoint()
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
-            page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
             random_delay(2, 5)
             
             if  page.query_selector('button.Button--login'):
