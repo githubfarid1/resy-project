@@ -49,8 +49,8 @@ def intercept_request(request, profilename):
         print(request.url)
         breakpoint()
         try:
-            token = request.headers['X-Resy-Auth-Token']
-            api_key=str(request.headers['Authorization']).replace('ResyAPI api_key=', "").replace('"','')
+            token = request.headers['x-resy-auth-token']
+            api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
             print(token, api_key)
             headers = {
                 "Authorization": f'ResyAPI api_key="{api_key}"',
@@ -141,6 +141,7 @@ def main():
                 print(message)
                 time.sleep(3)
                 page.goto("https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial", wait_until="networkidle", timeout=60000)
+                print("ok")
                 browser.close()
             error = False
             sys.exit()
