@@ -41,12 +41,12 @@ def random_delay(min_seconds, max_seconds):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
 def intercept_request(request, profilename):
-    print(request.url, "tes")
+    # print(request.url, "tes")
     # we can update requests with custom headers
     api_key = ''
     token = ''
     if "https://api.resy.com/2/config" in request.url:
-        # print(request.url)
+        print(request.url)
         # breakpoint()
         try:
             token = request.headers['x-resy-auth-token']
