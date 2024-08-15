@@ -51,7 +51,7 @@ def intercept_request(request, profilename):
         try:
             token = request.headers['x-resy-auth-token']
             api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
-            # print(token, api_key)
+            print(token, api_key)
             headers = {
                 "Authorization": f'ResyAPI api_key="{api_key}"',
                 "X-Resy-Auth-Token": token,
