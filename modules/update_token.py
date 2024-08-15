@@ -138,7 +138,7 @@ def main():
                 logging.info(message)
                 print(message)
                 time.sleep(3)
-                # browser.close()
+                browser.close()
             error = False
             sys.exit()
             
