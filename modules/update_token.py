@@ -140,7 +140,7 @@ def main():
                 logging.info(message)
                 print(message)
                 time.sleep(3)
-                page.goto("https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial", wait_until="networkidle", timeout=60000)
+                page.goto("https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial", wait_until="domcontentloaded", timeout=60000)
                 print("ok")
                 browser.close()
             error = False
