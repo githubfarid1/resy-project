@@ -129,7 +129,7 @@ def main():
 		    # runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
             # breakpoint()
             page.goto("https://resy.com", wait_until="networkidle", timeout=20000)
-            random_delay(10)
+            random_delay(2,5)
             
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
