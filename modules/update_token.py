@@ -123,7 +123,7 @@ def main():
             #         no_viewport=True
             #         )
             browser =  pr.chromium.launch(headless=True, args=wargs)
-            page = browser.pages[0]
+            page = browser.new_page()
             stealth_sync(page)
             # page.on("request", intercept_request)
             page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
