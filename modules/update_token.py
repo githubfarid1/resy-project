@@ -46,12 +46,11 @@ def intercept_request(request, profilename):
     api_key = ''
     token = ''
     if "https://api.resy.com/2/config" in request.url:
-        print(request.url)
-        breakpoint()
+        # print(request.url)
         try:
             token = request.headers['x-resy-auth-token']
             api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
-            print(token, api_key)
+            # print(token, api_key)
             headers = {
                 "Authorization": f'ResyAPI api_key="{api_key}"',
                 "X-Resy-Auth-Token": token,
@@ -99,11 +98,8 @@ def main():
     if not args.chprofile or not args.email or not args.password:
         input(" ".join(['Please add complete parameters, ex: python chromium_setup.py -cp [chrome_profile] -em [email] -pw [password]', CLOSE_MESSAGE]))
         sys.exit()
-    
-    # chrome_user_data = f"{CHROME_USER_DATA}{os.sep}{args.chprofile}"
     error = True
     try:
-        # user_agent = random.choice(user_agents)
         with sync_playwright() as pr:
             wargs = []
             wargs.append('--v=1')
@@ -114,34 +110,21 @@ def main():
             wargs.append('--disable-web-security')
             wargs.append('--start-maximized')
             
-            # browser =  pr.chromium.launch_persistent_context(user_data_dir=chrome_user_data, 
-            #         headless=True, 
-            #         args=wargs, 
-            #         user_agent=generate_user_agent(),
-            #         permissions=['geolocation', 'notifications'],
-            #         java_script_enabled=True,
-            #         no_viewport=True
-            #         )
             browser =  pr.chromium.launch(headless=True, args=wargs)
             page = browser.new_page()
             stealth_sync(page)
-            # page.on("request", intercept_request)
             page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
 
-		    # runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
-            # breakpoint()
-            page.goto("https://resy.com", wait_until="networkidle", timeout=20000)
+            page.goto("https://resy.com", wait_until="domcontentloaded", timeout=20000)
             random_delay(2,5)
             
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
-                
                 logging.info(message)
                 print(message)
                 time.sleep(3)
-                page.goto("https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial", wait_until="domcontentloaded", timeout=60000)
-                print("ok")
+                page.goto("https://resy.com/cities/orlando-fl", wait_until="domcontentloaded", timeout=60000)
                 browser.close()
             error = False
             sys.exit()
