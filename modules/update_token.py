@@ -138,7 +138,7 @@ def main():
                 logging.info(message)
                 print(message)
                 time.sleep(3)
-                page.goto("https://resy.com", wait_until="networkidle", timeout=20000)
+                page.goto("https://resy.com", wait_until="networkidle", timeout=60000)
                 browser.close()
             error = False
             sys.exit()
