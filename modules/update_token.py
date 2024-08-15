@@ -127,10 +127,10 @@ def main():
             page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
 
 		    # runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(profile=chprofileentry, headless=headlessentry, exemode=procentry, nstop=nstopentry))
-
+            breakpoint()
             page.goto("https://resy.com", wait_until='domcontentloaded', timeout=20000)
             random_delay(2, 5)
-            breakpoint()
+            
             if  page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
