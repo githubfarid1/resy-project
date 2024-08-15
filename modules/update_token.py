@@ -118,12 +118,17 @@ def main():
             page.goto("https://resy.com", wait_until="domcontentloaded", timeout=20000)
             random_delay(2,5)
             
-            if  page.query_selector('button.Button--login'):
+            if page.query_selector('button.Button--login'):
                 login_to_resy(page, args.email, args.password)
                 message = "Logged in successfully."
+                time.sleep(3)
+                if page.query_selector('button.Button--login'):
+                    message = "Logged in Failed."
+                    raise Exception(message)    
+                
                 logging.info(message)
                 print(message)
-                time.sleep(3)
+                # time.sleep(1)
                 page.goto("https://resy.com/cities/orlando-fl", wait_until="domcontentloaded", timeout=60000)
                 browser.close()
             error = False
