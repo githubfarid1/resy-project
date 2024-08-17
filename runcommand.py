@@ -1,7 +1,7 @@
 from subprocess import Popen, check_call, call
 from sys import platform
 if platform == "linux" or platform == "linux2":
-    pyexe = "python"
+    pyexe = " venv/bin/python"
 elif platform == "win32":
     pyexe = "venv/Scripts/python.exe"  
 fname = open("logs/command1.log", "w")
