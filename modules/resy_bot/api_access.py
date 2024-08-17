@@ -48,6 +48,7 @@ def build_session(config: ResyConfig) -> Session:
             'https': config.https_proxy,
         }
         session.proxies.update(proxies)
+        logger.info("Proxy Updated")
     return session
 
 
