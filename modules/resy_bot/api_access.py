@@ -49,6 +49,13 @@ def build_session(config: ResyConfig) -> Session:
         }
         session.proxies.update(proxies)
         logger.info("Proxy Updated")
+        # ip address using by proxy
+    response = session.get("http://whatismyip.akamai.com/")
+    if response.status_code == 200:
+        ip_address = response.text.strip()
+        logger.info(f"IP Address:{ip_address}")        
+    # ==========
+    
     return session
 
 
@@ -86,7 +93,7 @@ class ResyApiAccess:
         )
 
         resp = self.session.get(find_url, params=params.dict())
-        logger.info(f"{datetime.now().isoformat()} Received response for ")
+        logger.info(f"{datetime.now().isoformat()}: Received response for ")
 
         if not resp.ok:
             raise HTTPError(
