@@ -30,6 +30,7 @@ logger.setLevel("INFO")
 def build_session(config: ResyConfig) -> Session:
 
     session = Session()
+    session.cookies.clear()
     headers = {
         "Authorization": config.get_authorization(),
         "X-Resy-Auth-Token": config.token,
