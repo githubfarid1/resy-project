@@ -1,34 +1,29 @@
 # import requests
-# from urllib.parse import urlencode
-
-# proxy_params = {
-#       'api_key': '6456b40c-0bb9-4277-a24d-82901d1eae56',
-#       'url': 'http://httpbin.org/ip', 
-#   }
 
 # response = requests.get(
 #   url='https://proxy.scrapeops.io/v1/',
-#   params=urlencode(proxy_params),
-#   timeout=120,
+#   params={
+#       'api_key': 'f2d43fe5-5bee-41ab-83f9-da70ae59c60a',
+#       'url': 'https://quotes.toscrape.com/', 
+#   },
 # )
-# # breakpoint()
-# print('Body: ', response.content)
+
+# print('Response Body: ', response.content)
 
 import requests
 
-api_key = '6456b40c-0bb9-4277-a24d-82901d1eae56'
-target_url = 'https://resy.com'
-proxy_url = f'http://scrapeops:{api_key}@residential-proxy.scrapeops.io:8181'
+# proxies = {
+#   "http": "http://scrapeops:f2d43fe5-5bee-41ab-83f9-da70ae59c60a@residential-proxy.scrapeops.io:8181",
+#   "https": "http://scrapeops:f2d43fe5-5bee-41ab-83f9-da70ae59c60a@residential-proxy.scrapeops.io:8181"
+# }
+# response = requests.get('https://quotes.toscrape.com/', proxies=proxies, verify=False)
+# print(response.text)
 
 proxies = {
-    'http': proxy_url,
-    'https': proxy_url,
+  "http": "http://14add03797816:36a716f2fd@89.47.126.163:12323",
+  "https": "http://14add03797816:36a716f2fd@89.47.126.163:12323"
 }
+response = requests.get('https://quotes.toscrape.com/', proxies=proxies, verify=False)
+print(response.text)
 
-response = requests.get(
-    url=target_url,
-    proxies=proxies,
-    timeout=120,
-)
 
-print('Body:', response.content)
