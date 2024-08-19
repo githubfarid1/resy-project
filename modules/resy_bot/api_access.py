@@ -91,7 +91,7 @@ class ResyApiAccess:
 
         if not resp.ok:
             if resp.status_code == 500:
-                self.get_ip_used()
+                logger.info(self.get_ip_used().strip())
             raise HTTPError(
                 f"Failed to find booking slots: {resp.status_code}, {resp.text}"
             )
