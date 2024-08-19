@@ -49,12 +49,6 @@ def build_session(config: ResyConfig) -> Session:
         }
         session.proxies.update(proxies)
         logger.info("Proxy Updated")
-        # ip address using by proxy
-    response = session.get("http://whatismyip.akamai.com/")
-    if response.status_code == 200:
-        ip_address = response.text.strip()
-        logger.info(f"IP Address:{ip_address}")        
-    # ==========
     
     return session
 
@@ -96,6 +90,8 @@ class ResyApiAccess:
         logger.info(f"{datetime.now().isoformat()}: Received response for ")
 
         if not resp.ok:
+            if resp.status_code == 500:
+                self.get_ip_used()
             raise HTTPError(
                 f"Failed to find booking slots: {resp.status_code}, {resp.text}"
             )
@@ -118,7 +114,7 @@ class ResyApiAccess:
             )
 
         return DetailsResponseBody(**resp.json())
-
+    
     def _dump_book_request_body_to_dict(self, body: BookRequestBody) -> Dict:
         """
         requests lib doesn't urlencode nested dictionaries,
@@ -155,3 +151,9 @@ class ResyApiAccess:
         parsed_resp = BookResponseBody(**resp.json())
 
         return parsed_resp.resy_token
+    #frd
+    def get_ip_used(self):
+        response = self.session.get("http://whatismyip.akamai.com/")
+        if response.status_code == 200:
+            return response.text.strip()
+    

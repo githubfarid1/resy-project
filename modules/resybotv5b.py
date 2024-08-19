@@ -216,7 +216,7 @@ def main():
                 break
             except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                 print("Reservation Failed: " + str(e) + TRY_MESSAGE)
-                print("idle time", int(sleeptime), "seconds")
+                print("idle timexx", int(sleeptime), "seconds")
                 time.sleep(sleeptime)
                 continue
             except IndexError as e:
