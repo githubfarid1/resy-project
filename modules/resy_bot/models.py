@@ -9,11 +9,12 @@ class ResyConfig(BaseModel):
     token: str
     payment_method_id: int
     email: str
-    password: str
-    http_proxy: str
-    https_proxy: str
-    retry_count: int
-
+    password: str 
+    http_proxy: str #frd
+    https_proxy: str #frd
+    retry_count: int #frd
+    check_only: bool #frd
+    
     def get_authorization(self) -> str:
         return f'ResyAPI api_key="{self.api_key}"'
 

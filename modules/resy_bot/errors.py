@@ -4,3 +4,7 @@ class NoSlotsError(Exception):
 
 class ExhaustedRetriesError(Exception):
     pass
+
+# frd
+class CheckOnly(Exception):
+    pass

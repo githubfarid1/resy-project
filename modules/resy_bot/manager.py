@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from resy_bot.logging import logging
-from resy_bot.errors import NoSlotsError, ExhaustedRetriesError
+from resy_bot.errors import NoSlotsError, ExhaustedRetriesError, CheckOnly
 from resy_bot.constants import (
     N_RETRIES,
     SECONDS_TO_WAIT_BETWEEN_RETRIES,
@@ -68,7 +68,11 @@ class ResyManager:
             logger.info(slots)
 
         selected_slot = self.selector.select(slots, reservation_request)
-        # breakpoint()
+        # frd
+        if self.config.check_only:
+            logger.info(selected_slot)
+            raise CheckOnly("The booking Slot Found, You can Reservation it")
+        # -----
         logger.info(selected_slot)
         details_request = build_get_slot_details_body(
             reservation_request, selected_slot
