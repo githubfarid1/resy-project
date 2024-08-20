@@ -90,8 +90,10 @@ class ResyApiAccess:
         logger.info(f"{datetime.now().isoformat()}: Received response for ")
 
         if not resp.ok:
+            #frd
             if resp.status_code == 500:
                 logger.info(self.get_ip_used().strip())
+            #----
             raise HTTPError(
                 f"Failed to find booking slots: {resp.status_code}, {resp.text}"
             )
@@ -102,6 +104,7 @@ class ResyApiAccess:
             raise IndexError("Date or vanue is not available")
         else:
             return parsed_resp.results.venues[0].slots
+        # return parsed_resp.results.venues[0].slots
 
     def get_booking_token(self, params: DetailsRequestBody) -> DetailsResponseBody:
         details_url = RESY_BASE_URL + ResyEndpoints.DETAILS.value

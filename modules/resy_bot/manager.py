@@ -68,7 +68,7 @@ class ResyManager:
             logger.info(slots)
 
         selected_slot = self.selector.select(slots, reservation_request)
-
+        # breakpoint()
         logger.info(selected_slot)
         details_request = build_get_slot_details_body(
             reservation_request, selected_slot
