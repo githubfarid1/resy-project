@@ -7,7 +7,7 @@ import os
 import git
 import sys
 from sys import platform
-from subprocess import Popen, check_call
+from subprocess import Popen, check_call, PIPE, STDOUT
 import warnings
 import shutil
 from settings import PYTHON_EXE, CHROME_USER_DATA
@@ -162,7 +162,8 @@ class MainFrame(ttk.Frame):
   
 		
 		titleLabel = TitleLabel(self, 'Main Menu')
-		resybotv4Button = FrameButton(self, window, text="Resy Bot Form", class_frame=ResyBotv5Frame)
+		resybotv4Button = FrameButton(self, window, text="Resy Bot Booking Form", class_frame=ResyBotv5Frame)
+		resybotcheckButton = FrameButton(self, window, text="Resy Bot Checking Availability Form", class_frame=ResyBotCheckFrame)
 		reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
 		UpdateTokenButton = FrameButton(self, window, text="Update Profile Token", class_frame=UpdateTokenFrame)
@@ -172,10 +173,11 @@ class MainFrame(ttk.Frame):
 		# # # layout
 		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		resybotv4Button.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		reservationlistButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		chromiumProfileButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		UpdateTokenButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		proxyProfileButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		resybotcheckButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		reservationlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		chromiumProfileButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		UpdateTokenButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		proxyProfileButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 
 class AddReservationFrame(ttk.Frame):
 	def __init__(self, window) -> None:
@@ -510,7 +512,7 @@ class ResyBotv5Frame(ttk.Frame):
 		self.rowconfigure(13, weight=1)
 		
 		# populate
-		titleLabel = TitleLabel(self, text="Resy Bot Form")
+		titleLabel = TitleLabel(self, text="Resy Bot Booking Form")
 		urllabel = Label(self, text="Base URL: ")
 		datelabel = Label(self, text="Date: ")
 		timelabel = Label(self, text="Time: ")
@@ -816,6 +818,212 @@ class ResyBotv5Frame(ttk.Frame):
 		except IndexError as error:
 			pass
 
+class ResyBotCheckFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.chosenRow = None
+		self.columnconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+		self.columnconfigure(2, weight=1)
+
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		
+		# populate
+		titleLabel = TitleLabel(self, text="Resy Bot Checking Availability Form")
+		urllabel = Label(self, text="Base URL: ")
+		datelabel = Label(self, text="Start Date: ")
+		date2label = Label(self, text="End Date: ")
+		seatslabel = Label(self, text="Seats: ")
+		nstoplabel = Label(self, text="Nonstop Checking: ")
+		proxylabel = Label(self, text="Proxy: ")
+		self.url = StringVar(value="https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
+		urlentry = Entry(self, width=80, textvariable=self.url)
+		self.date = StringVar()
+		dateentry = DateEntry(self, width= 20, date_pattern='yyyy-mm-dd', textvariable=self.date)
+		self.date2 = StringVar()
+		date2entry = DateEntry(self, width= 20, date_pattern='yyyy-mm-dd', textvariable=self.date2)
+		self.defseat = StringVar(value=2)
+		seatsentry = Spinbox(self, from_=1, to=100, textvariable=self.defseat, state="readonly", width=5)
+		self.nstop=StringVar()
+		nstopentry = ttk.Combobox(self, textvariable=self.nstop, state="readonly", width=5)
+		nstopentry['values'] = ['No','Yes']
+		nstopentry.current(0)
+		self.proxy=StringVar()
+		proxyentry = ttk.Combobox(self, textvariable=self.proxy, state="readonly", width=30)
+		proxyentry['values'] = db.proxyValues()
+		proxyentry.current(0)
+
+		style = ttk.Style()
+		# style.theme_use("clam")
+		style.configure("Fancy.TButton", font=("Cooper Black", 12), foreground="blue", background="green")
+
+		closeButton = CloseButton(self)
+		saveButton = ttk.Button(self, text='Insert Checking', command = lambda:self.savelist(url=urlentry, date=dateentry, date2=date2entry, seats=seatsentry, nonstop=nstopentry,  proxy=proxyentry), style="Fancy.TButton")
+		runButton = ttk.Button(self, text='Run Checking', command=self.runCheck, style="Fancy.TButton")
+		removeButton = ttk.Button(self, text='Delete Checking', command=self.removeCheck, style="Fancy.TButton")
+		updateButton = ttk.Button(self, text='Update Checking', command=self.updateCheck, style="Fancy.TButton")
+
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S), columnspan=3)
+		urllabel.grid(column = 0, row = 1, sticky=(W))
+		urlentry.grid(column = 0, row = 1, sticky=(E))
+		datelabel.grid(column = 0, row = 2, sticky=(W))
+		dateentry.grid(column = 0, row = 2, sticky=(E))
+		date2label.grid(column = 0, row = 3, sticky=(W))
+		date2entry.grid(column = 0, row = 3, sticky=(E))
+		seatslabel.grid(column = 0, row = 4, sticky=(W))
+		seatsentry.grid(column = 0, row = 4, sticky=(E))
+		nstoplabel.grid(column = 2, row = 1, sticky=(W))
+		nstopentry.grid(column = 2, row = 1, sticky=(E))
+		proxylabel.grid(column = 2, row = 2, sticky=(W))
+		proxyentry.grid(column = 2, row = 2, sticky=(E))
+
+		# viewButton.grid(column=2, row=8, sticky=(W))
+		saveButton.grid(column = 2, row = 4, sticky = (E))
+		runButton.grid(column = 0, row = 4, sticky = (W))
+		updateButton.grid(column = 2, row = 4, sticky = (W))
+		removeButton.grid(column = 0, row = 4, sticky = (E))
+		closeButton.grid(column = 2, row = 6, sticky = (E))
+		self.tableOutputFrame()
+		self.viewCheck()
+		self.resetForm()
+                
+	def savelist(self, **kwargs):
+		db.insertCheck(url=kwargs['url'].get(), startdate=str(kwargs['date'].get_date()), enddate=str(kwargs['date2'].get_date()), seats=kwargs['seats'].get(), nonstop=kwargs['nonstop'].get(),  proxy=kwargs['proxy'].get())
+		# savejson(filename="commandlist.json", valuelist=self.commandlist)
+		self.viewCheck()
+		messagebox.showinfo("Message box","Checking Availability list Saved")
+		self.resetForm()
+		
+	def viewCheck(self):
+		self.out.delete(*self.out.get_children())  # emptying the table before reloading
+		for row in db.viewCheck():
+			self.out.insert("", END, values=row)
+
+	def runCheck(self):
+		selection = self.out.selection()
+		if len(selection) == 0:
+			messagebox.showerror("Error!", "Please Choose a Bot Checking Availability Record to Run!")
+			return
+		try:
+			for i in selection:
+				item = self.out.item(i)['values']
+				# filelog = open(f"logs/checking_stdout_{item[0]}.log", "w")
+				comlist=[PYLOC, "modules/resybotcheck1.py", "-u", '{}'.format(item[7]), "-sd", '{}'.format(item[2]), "-ed", '{}'.format(item[3]), "-s", '{}'.format(item[4]), "-up", '{}'.format(item[6]), "-ns", '{}'.format(item[5]), "-id", '{}'.format(item[0])]
+				# proc=Popen(comlist, creationflags=CREATE_NEW_CONSOLE, stdout=filelog)
+				proc=Popen(comlist, creationflags=CREATE_NEW_CONSOLE)
+				
+				# proc=Popen(comlist)
+
+				print(proc.pid)
+				# for line in proc.stdout:
+				# 	sys.stdout.write(line)
+				# 	filelog.write(line)
+				# proc.wait()
+				# run_module(comlist=comlist)
+		except AttributeError as error:
+			messagebox.showerror("Error!", "Please Choose a Bot Command Record to Run!")
+		except Exception as e:
+			messagebox.showerror("Error!", str(e))
+
+	def removeCheck(self):
+		selection = self.out.selection()
+		if len(selection) == 0:
+			messagebox.showerror("Error!", "Please Choose a Bot Checking Availability Record to Delete!")
+			return
+
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		try:
+			for i in selection:
+				item = self.out.item(i)['values']
+				db.removeCheck(item[0])
+			self.resetForm()
+			self.viewCheck()
+		except AttributeError as error:
+			messagebox.showerror("Error!", "Please Choose a Bot Command Record to Remove!")
+		
+
+	def updateCheck(self):
+		if self.chosenRow == None:
+			messagebox.showerror("Error!", "Please Choose a Bot Command Record to Update!")
+			return
+		db.updateCheck(comid=self.chosenRow[0], url=self.url.get(), startdate=self.date.get(), enddate=self.date2.get(), seats=self.defseat.get(), nonstop=self.nstop.get(), proxy=self.proxy.get())
+		self.viewCheck()
+		messagebox.showinfo("Info", "Command Updates..")
+		self.resetForm()
+		
+	def resetForm(self):
+		self.url.set("https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
+		self.date.set(datetime.strftime(datetime.now(), '%Y-%m-%d'))
+		self.date2.set(datetime.strftime(datetime.now(), '%Y-%m-%d'))
+
+		self.defseat.set("2")
+		self.nstop.set("No")
+		self.proxy.set("<Not Set>")
+
+	def tableOutputFrame(self):
+		self.tableFrame = Frame(self, bg="#DADDE6")
+		# self.tableFrame.place(x=0, y=400, width=1290, height=260)
+		self.tableFrame.grid(column=0, row=5, columnspan=3,sticky = (W, E, N, S))
+		# titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S), columnspan=3)
+
+		self.yScroll = Scrollbar(self.tableFrame)
+		self.yScroll.pack(side=RIGHT, fill=Y)
+		self.style = ttk.Style()
+		self.style.configure("mystyle.Treeview", font=('Calibri', 12), rowheight=25)
+		self.style.configure("mystyle.Treeview.Heading", font=('Times New Roman', 14, "bold"), sticky="w")
+		self.out = ttk.Treeview(self.tableFrame, yscrollcommand=self.yScroll.set, 
+        columns=(1, 2, 3, 4, 5, 6, 7, 8), style="mystyle.Treeview")
+		self.out.heading("1", text="ID")
+		self.out.column("1", width=0, stretch="no")
+		self.out.heading("2", text="Restaurant")
+		self.out.column("2", width=200, stretch="no")
+		self.out.heading("3", text="Start Date")
+		self.out.column("3", width=5, anchor="center")
+		self.out.heading("4", text="End Date")
+		self.out.column("4", width=5, anchor="center")
+		self.out.heading("5", text="Seats")
+		self.out.column("5", width=2, anchor="center")
+		self.out.heading("6", text="NStop")
+		self.out.column("6", width=70, anchor="center", stretch="no")
+		self.out.heading("7", text="Proxy")
+		self.out.column("7", width=10, anchor="center")
+		self.out.heading("8", text="URL")
+		self.out.column("8", width=0, stretch=0)
+
+		self.out['show'] = 'headings'
+		self.out.bind("<ButtonRelease-1>", self.getData)
+		# self.comboAvail.bind("<<ComboboxSelected>>", self.selectDays)
+		self.out.pack(fill=X)
+		self.yScroll.config(command=self.out.yview)
+
+	def getData(self, event):
+		try:
+			self.selectedRow = self.out.focus()
+			self.selectedData = self.out.item(self.selectedRow)
+			self.chosenRow = self.selectedData["values"]
+			self.url.set(self.chosenRow[7])
+			self.date.set(self.chosenRow[2])
+			self.date2.set(self.chosenRow[3])
+			self.defseat.set(self.chosenRow[4])
+			self.nstop.set(self.chosenRow[5])
+			self.proxy.set(self.chosenRow[6])
+
+
+		except IndexError as error:
+			pass
+
 class FrameButton(ttk.Button):
 	def __init__(self, parent, window, **kwargs):
 		super().__init__(parent)
@@ -864,10 +1072,11 @@ def run_module(comlist):
 		comlist[:0] = ["--"]
 		comlist[:0] = ["gnome-terminal"]
 		# print(comlist)
-		Popen(comlist)
+		proc = Popen(comlist)
 	elif platform == "win32":
-		Popen(comlist, creationflags=CREATE_NEW_CONSOLE)
-	
+		proc = Popen(comlist, creationflags=CREATE_NEW_CONSOLE)
+		print(proc.pid)
+
 	comall = ''
 	for com in comlist:
 		comall += com + " "
