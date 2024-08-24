@@ -32,7 +32,8 @@ class Database:
             proxy text,
             retry Integer,
             minidle Integer,
-            maxidle Integer
+            maxidle Integer,
+            checkonly text
         )
         """
         # cursor executions
@@ -45,9 +46,7 @@ class Database:
             enddate text,
             seats Integer,
             nonstop text,
-            proxy text,
-            minidle Integer,
-            maxidle Integer
+            proxy text
         )
         """
         self.cur.execute(sql)
@@ -75,9 +74,9 @@ class Database:
         return [value['email'] for value in self.profilelist]
 
     # Add Instructor record to the table
-    def insertCommand(self, url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle):
-        self.cur.execute("INSERT INTO commands VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                         (url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle))
+    def insertCommand(self, url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle, checkonly):
+        self.cur.execute("INSERT INTO commands VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                         (url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle, checkonly))
         self.con.commit()
 
 
@@ -99,15 +98,15 @@ class Database:
         self.con.commit()
 
     # Edit Instructor Details in the table
-    def updateCommand(self, comid, url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle):
-        sql_insert_query = """UPDATE commands SET url=?, datewanted=?, timewanted=?, hoursba=?, seats=?, reservation=?, rundate=?, runtime=?, runnow=?, account=?, nonstop=?, duration=?, proxy=?, retry=?, minidle=?, maxidle=? WHERE id=?"""
-        self.cur.execute(sql_insert_query, (url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle, comid))
+    def updateCommand(self, comid, url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle, checkonly):
+        sql_insert_query = """UPDATE commands SET url=?, datewanted=?, timewanted=?, hoursba=?, seats=?, reservation=?, rundate=?, runtime=?, runnow=?, account=?, nonstop=?, duration=?, proxy=?, retry=?, minidle=?, maxidle=?, checkonly=? WHERE id=?"""
+        self.cur.execute(sql_insert_query, (url, datewanted, timewanted, hoursba, seats, reservation, rundate, runtime, runnow, account, nonstop, duration, proxy, retry, minidle, maxidle, checkonly, comid))
         self.con.commit()
 
 
-    def insertCheck(self, url, startdate, enddate, seats, nonstop, proxy, minidle, maxidle):
-        self.cur.execute("INSERT INTO checks VALUES (NULL,?,?,?,?,?,?,?,?)",
-                         (url, startdate, enddate, seats, nonstop, proxy, minidle, maxidle))
+    def insertCheck(self, url, startdate, enddate, seats, nonstop, proxy):
+        self.cur.execute("INSERT INTO checks VALUES (NULL,?,?,?,?,?,?)",
+                         (url, startdate, enddate, seats, nonstop, proxy))
         self.con.commit()
 
     # Display Instructor List from table
@@ -128,7 +127,7 @@ class Database:
         self.con.commit()
 
     # Edit Instructor Details in the table
-    def updateCheck(self, comid, url, startdate, enddate, seats, nonstop, proxy, minidle, maxidle):
-        sql_insert_query = """UPDATE checks SET url=?, startdate=?, enddate=?, seats=?, nonstop=?, proxy=?, minidle=?, maxidle=? WHERE id=?"""
-        self.cur.execute(sql_insert_query, (url, startdate, enddate, seats, nonstop, proxy, minidle, maxidle, comid))
+    def updateCheck(self, comid, url, startdate, enddate, seats, nonstop, proxy):
+        sql_insert_query = """UPDATE checks SET url=?, startdate=?, enddate=?, seats=?, nonstop=?, proxy=? WHERE id=?"""
+        self.cur.execute(sql_insert_query, (url, startdate, enddate, seats, nonstop, proxy, comid))
         self.con.commit()

@@ -1,17 +1,17 @@
 import argparse
 import json
-from resy_bot2.logging import logging
+from resy_bot.logging import logging
 import os
 import sys
-from resy_bot2.models import ResyConfig, TimedReservationRequest
-from resy_bot2.manager import ResyManager
+from resy_bot.models import ResyConfig, TimedReservationRequest
+from resy_bot.manager import ResyManager
 import requests
 from user_agent import generate_user_agent
 from datetime import datetime
 import random
 import time
 from requests import Session, HTTPError
-from resy_bot2.errors import NoSlotsError, ExhaustedRetriesError
+from resy_bot.errors import NoSlotsError, ExhaustedRetriesError, CheckOnly
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
 
@@ -70,10 +70,11 @@ def main():
     parser.add_argument('-re', '--retry', type=str,help="Retry Count")
     parser.add_argument('-mn', '--minidle', type=str,help="Min Idle Time")
     parser.add_argument('-mx', '--maxidle', type=str,help="Max Idle Time")
+    parser.add_argument('-co', '--checkonly', type=str,help="Check the booking only")
 
     args = parser.parse_args()
-    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle:
-        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle]', CLOSE_MESSAGE]))
+    if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle or not args.checkonly:
+        input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle] -mx [checkonly]', CLOSE_MESSAGE]))
         sys.exit()
     # breakpoint()
     
@@ -100,7 +101,11 @@ def main():
     myTable.add_row(["Retry Count", args.retry])
     myTable.add_row(["Min Idle Time", args.minidle])
     myTable.add_row(["Max Idle Time", args.maxidle])
+    myTable.add_row(["Check Only", args.checkonly])
+
+    # myTable.add_row(["URL", args.url])
     print(myTable)
+    # breakpoint()
     headers = {
         "Authorization": 'ResyAPI api_key="{}"'.format(profile['api_key']),
         "X-Resy-Auth-Token": profile['token'],
@@ -128,7 +133,8 @@ def main():
             proxy = [prof for prof in listvalue if prof['profilename']==args.proxy]
             http_proxy = proxy[0]['http_proxy']
             https_proxy = proxy[0]['https_proxy']
-        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry)}
+        checkonly = True if args.checkonly == 'Yes' else False
+        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry), "check_only": checkonly}
         
         if args.reservation == '<Not Set>':
             reservation_type = None
@@ -170,6 +176,8 @@ def main():
             else:
                 run_now(resy_config=resy_config, reservation_config=reservation_config)
             input("Reservation Success..." + CLOSE_MESSAGE)
+        except CheckOnly as e:
+            input(str(e) + CLOSE_MESSAGE)
         except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
             input("Reservation Failed: " + str(e) + CLOSE_MESSAGE)
         except IndexError as e:
@@ -197,6 +205,9 @@ def main():
                 else:
                     run_now(resy_config=resy_config, reservation_config=reservation_config)
                 input("Reservation Success..." + CLOSE_MESSAGE)
+                break
+            except CheckOnly as e:
+                input(str(e) + CLOSE_MESSAGE)
                 break
             except  (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                 print("Reservation Failed: " + str(e) + TRY_MESSAGE)

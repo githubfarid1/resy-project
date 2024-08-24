@@ -529,8 +529,7 @@ class ResyBotv5Frame(ttk.Frame):
 		retrylabel = Label(self, text="Retry Count: ")
 		minidlelabel = Label(self, text="Min Idle Time: ")
 		maxidlelabel = Label(self, text="Max Idle Time: ")
-		# checkonlylabel = Label(self, text="Availability Check Only: ")
-
+		checkonlylabel = Label(self, text="Availability Check Only: ")
 		self.url = StringVar(value="https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
 		urlentry = Entry(self, width=80, textvariable=self.url)
 		self.date = StringVar()
@@ -569,10 +568,10 @@ class ResyBotv5Frame(ttk.Frame):
 		nstopentry = ttk.Combobox(self, textvariable=self.nstop, state="readonly", width=5)
 		nstopentry['values'] = ['No','Yes']
 		nstopentry.current(0)
-		# self.checkonly=StringVar()
-		# checkonlyentry = ttk.Combobox(self, textvariable=self.checkonly, state="readonly", width=5)
-		# checkonlyentry['values'] = ['No','Yes']
-		# checkonlyentry.current(0)
+		self.checkonly=StringVar()
+		checkonlyentry = ttk.Combobox(self, textvariable=self.checkonly, state="readonly", width=5)
+		checkonlyentry['values'] = ['No','Yes']
+		checkonlyentry.current(0)
 
 		self.duration = StringVar(value=0)
 		durationentry = Spinbox(self, from_=0, to=600, textvariable=self.duration, width=5)
@@ -592,7 +591,7 @@ class ResyBotv5Frame(ttk.Frame):
 		style.configure("Fancy.TButton", font=("Cooper Black", 12), foreground="blue", background="green")
 
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Insert Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=self.timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry, run_date=rundateentry, run_time=self.runtimeentry, runnow=runimentry, nonstop=nstopentry, duration=durationentry, proxy=proxyentry, retry=retryentry, minidle=minidleentry, maxidle=maxidleentry), style="Fancy.TButton")
+		saveButton = ttk.Button(self, text='Insert Booking', command = lambda:self.savelist(url=urlentry, date=dateentry, time=self.timeentry, seats=seatsentry, reservation=reservationentry, profile=chprofileentry, range_hours=rangeentry, run_date=rundateentry, run_time=self.runtimeentry, runnow=runimentry, nonstop=nstopentry, duration=durationentry, proxy=proxyentry, retry=retryentry, minidle=minidleentry, maxidle=maxidleentry, checkonly=checkonlyentry), style="Fancy.TButton")
 		runButton = ttk.Button(self, text='Run Booking', command=self.runCommand, style="Fancy.TButton")
 		removeButton = ttk.Button(self, text='Delete Booking', command=self.removeCommand, style="Fancy.TButton")
 		updateButton = ttk.Button(self, text='Update Booking', command=self.updateCommand, style="Fancy.TButton")
@@ -631,8 +630,8 @@ class ResyBotv5Frame(ttk.Frame):
 		minidleentry.grid(column = 2, row = 6, sticky=(E))
 		maxidlelabel.grid(column = 2, row = 7, sticky=(W))
 		maxidleentry.grid(column = 2, row = 7, sticky=(E))
-		# checkonlylabel.grid(column = 2, row = 8, sticky=(W))
-		# checkonlyentry.grid(column = 2, row = 8, sticky=(E))
+		checkonlylabel.grid(column = 2, row = 8, sticky=(W))
+		checkonlyentry.grid(column = 2, row = 8, sticky=(E))
 
 		# viewButton.grid(column=2, row=8, sticky=(W))
 		saveButton.grid(column = 2, row = 10, sticky = (E))
@@ -647,7 +646,8 @@ class ResyBotv5Frame(ttk.Frame):
 	def savelist(self, **kwargs):
 		formatted_time = convert24time(kwargs['time'])
 		formatted_runtime = convert24timeSecond(kwargs['run_time'])
-		db.insertCommand(url=kwargs['url'].get(), datewanted=str(kwargs['date'].get_date()), timewanted=formatted_time, seats=kwargs['seats'].get(), reservation=kwargs['reservation'].get(), account=kwargs['profile'].get(), hoursba=kwargs['range_hours'].get(), rundate=str(kwargs['run_date'].get_date()), runtime=formatted_runtime, runnow=kwargs['runnow'].get(), nonstop=kwargs['nonstop'].get(), duration=kwargs['duration'].get(), proxy=kwargs['proxy'].get(), retry=kwargs['retry'].get(), minidle=kwargs['minidle'].get(), maxidle=kwargs['maxidle'].get())
+		db.insertCommand(url=kwargs['url'].get(), datewanted=str(kwargs['date'].get_date()), timewanted=formatted_time, seats=kwargs['seats'].get(), reservation=kwargs['reservation'].get(), account=kwargs['profile'].get(), hoursba=kwargs['range_hours'].get(), rundate=str(kwargs['run_date'].get_date()), runtime=formatted_runtime, runnow=kwargs['runnow'].get(), nonstop=kwargs['nonstop'].get(), duration=kwargs['duration'].get(), proxy=kwargs['proxy'].get(), retry=kwargs['retry'].get(), minidle=kwargs['minidle'].get(), maxidle=kwargs['maxidle'].get(), checkonly=kwargs['checkonly'].get() )
+		# savejson(filename="commandlist.json", valuelist=self.commandlist)
 		self.viewCommand()
 		messagebox.showinfo("Message box","Booking list Saved")
 		self.resetForm()
@@ -665,7 +665,7 @@ class ResyBotv5Frame(ttk.Frame):
 		try:
 			for i in selection:
 				item = self.out.item(i)['values']
-				run_module(comlist=[PYLOC, "modules/resybotv5.py", "-u", '{}'.format(item[17]), "-d", '{}'.format(item[2]), "-t", '{}'.format(item[3]), "-s", '{}'.format(item[5]), "-r", '{}'.format(item[6]), "-cp", item[10],  "-rd", '{}'.format(item[7]), "-rt", item[8], "-rh", '{}'.format(item[4]), "-rn", '{}'.format(item[9]), "-ns", '{}'.format(item[11]), "-dr", '{}'.format(item[12]), "-up", '{}'.format(item[13]), "-re", '{}'.format(item[14]), "-mn", '{}'.format(item[15]), "-mx", '{}'.format(item[16])])
+				run_module(comlist=[PYLOC, "modules/resybotv5.py", "-u", '{}'.format(item[18]), "-d", '{}'.format(item[2]), "-t", '{}'.format(item[3]), "-s", '{}'.format(item[5]), "-r", '{}'.format(item[6]), "-cp", item[10],  "-rd", '{}'.format(item[7]), "-rt", item[8], "-rh", '{}'.format(item[4]), "-rn", '{}'.format(item[9]), "-ns", '{}'.format(item[11]), "-dr", '{}'.format(item[12]), "-up", '{}'.format(item[13]), "-re", '{}'.format(item[14]), "-mn", '{}'.format(item[15]), "-mx", '{}'.format(item[16]), "-co", '{}'.format(item[17])])
 		
 		except AttributeError as error:
 			messagebox.showerror("Error!", "Please Choose a Bot Command Record to Run!")
@@ -696,7 +696,7 @@ class ResyBotv5Frame(ttk.Frame):
 		formatted_time = convert24time(self.timeentry)
 		formatted_runtime = convert24timeSecond(self.runtimeentry)
 		# breakpoint()
-		db.updateCommand(comid=self.chosenRow[0], url=self.url.get(), datewanted=self.date.get(), timewanted=formatted_time, hoursba=self.defrange.get(), seats=self.defseat.get(), reservation=self.reservation.get(), rundate=self.rundate.get(), runtime=formatted_runtime, runnow=self.runim.get(), account=self.profile.get(), nonstop=self.nstop.get(), duration=self.duration.get(), proxy=self.proxy.get(), retry=self.retry.get(), minidle=self.minidle.get(), maxidle=self.maxidle.get())
+		db.updateCommand(comid=self.chosenRow[0], url=self.url.get(), datewanted=self.date.get(), timewanted=formatted_time, hoursba=self.defrange.get(), seats=self.defseat.get(), reservation=self.reservation.get(), rundate=self.rundate.get(), runtime=formatted_runtime, runnow=self.runim.get(), account=self.profile.get(), nonstop=self.nstop.get(), duration=self.duration.get(), proxy=self.proxy.get(), retry=self.retry.get(), minidle=self.minidle.get(), maxidle=self.maxidle.get(), checkonly=self.checkonly.get())
 		self.viewCommand()
 		messagebox.showinfo("Info", "Command Updates..")
 		self.resetForm()
@@ -726,7 +726,7 @@ class ResyBotv5Frame(ttk.Frame):
 		self.retry.set("10")
 		self.minidle.set("1")
 		self.maxidle.set("5")
-		# self.checkonly.set("No")
+		self.checkonly.set("No")
 
 	def tableOutputFrame(self):
 		self.tableFrame = Frame(self, bg="#DADDE6")
@@ -740,7 +740,7 @@ class ResyBotv5Frame(ttk.Frame):
 		self.style.configure("mystyle.Treeview", font=('Calibri', 12), rowheight=25)
 		self.style.configure("mystyle.Treeview.Heading", font=('Times New Roman', 14, "bold"), sticky="w")
 		self.out = ttk.Treeview(self.tableFrame, yscrollcommand=self.yScroll.set, 
-        columns=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18), style="mystyle.Treeview")
+        columns=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19), style="mystyle.Treeview")
 		self.out.heading("1", text="ID")
 		self.out.column("1", width=0, stretch="no")
 		self.out.heading("2", text="Restaurant")
@@ -775,10 +775,10 @@ class ResyBotv5Frame(ttk.Frame):
 		self.out.column("16", width=2, anchor="center")
 		self.out.heading("17", text="Max")
 		self.out.column("17", width=2, anchor="center")
-		# self.out.heading("18", text="COnly") 
-		# self.out.column("18", width=70, anchor="center", stretch="no")
-		self.out.heading("18", text="URL")
-		self.out.column("18", width=0, stretch=0)
+		self.out.heading("18", text="COnly") 
+		self.out.column("18", width=70, anchor="center", stretch="no")
+		self.out.heading("19", text="URL")
+		self.out.column("19", width=0, stretch=0)
 
 		self.out['show'] = 'headings'
 		self.out.bind("<ButtonRelease-1>", self.getData)
@@ -791,7 +791,7 @@ class ResyBotv5Frame(ttk.Frame):
 			self.selectedRow = self.out.focus()
 			self.selectedData = self.out.item(self.selectedRow)
 			self.chosenRow = self.selectedData["values"]
-			self.url.set(self.chosenRow[17])
+			self.url.set(self.chosenRow[18])
 			self.date.set(self.chosenRow[2])
 			self.timeentry.set12Hrs(self.chosenRow[3].split(":")[0] )
 			self.timeentry.setMins(self.chosenRow[3].split(":")[1].split(" ")[0])
@@ -812,7 +812,7 @@ class ResyBotv5Frame(ttk.Frame):
 			self.retry.set(self.chosenRow[14])
 			self.minidle.set(self.chosenRow[15])
 			self.maxidle.set(self.chosenRow[16])
-			# self.checkonly.set(self.chosenRow[17])
+			self.checkonly.set(self.chosenRow[17])
 
 
 		except IndexError as error:
@@ -837,8 +837,6 @@ class ResyBotCheckFrame(ttk.Frame):
 		self.rowconfigure(5, weight=1)
 		self.rowconfigure(6, weight=1)
 		self.rowconfigure(7, weight=1)
-		self.rowconfigure(8, weight=1)
-		self.rowconfigure(9, weight=1)
 		
 		# populate
 		titleLabel = TitleLabel(self, text="Resy Bot Checking Availability Form")
@@ -848,9 +846,6 @@ class ResyBotCheckFrame(ttk.Frame):
 		seatslabel = Label(self, text="Seats: ")
 		nstoplabel = Label(self, text="Nonstop Checking: ")
 		proxylabel = Label(self, text="Proxy: ")
-		minidlelabel = Label(self, text="Min Idle Time: ")
-		maxidlelabel = Label(self, text="Max Idle Time: ")
-
 		self.url = StringVar(value="https://resy.com/cities/orlando-fl/venues/kabooki-sushi-east-colonial")
 		urlentry = Entry(self, width=80, textvariable=self.url)
 		self.date = StringVar()
@@ -867,17 +862,13 @@ class ResyBotCheckFrame(ttk.Frame):
 		proxyentry = ttk.Combobox(self, textvariable=self.proxy, state="readonly", width=30)
 		proxyentry['values'] = db.proxyValues()
 		proxyentry.current(0)
-		self.minidle = StringVar(value=1)
-		minidleentry = Spinbox(self, from_=1, to=100, textvariable=self.minidle, state="readonly", width=5)
-		self.maxidle = StringVar(value=5)
-		maxidleentry = Spinbox(self, from_=1, to=100, textvariable=self.maxidle, state="readonly", width=5)
 
 		style = ttk.Style()
 		# style.theme_use("clam")
 		style.configure("Fancy.TButton", font=("Cooper Black", 12), foreground="blue", background="green")
 
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Insert Checking', command = lambda:self.savelist(url=urlentry, date=dateentry, date2=date2entry, seats=seatsentry, nonstop=nstopentry,  proxy=proxyentry, minidle=minidleentry, maxidle=maxidleentry), style="Fancy.TButton")
+		saveButton = ttk.Button(self, text='Insert Checking', command = lambda:self.savelist(url=urlentry, date=dateentry, date2=date2entry, seats=seatsentry, nonstop=nstopentry,  proxy=proxyentry), style="Fancy.TButton")
 		runButton = ttk.Button(self, text='Run Checking', command=self.runCheck, style="Fancy.TButton")
 		removeButton = ttk.Button(self, text='Delete Checking', command=self.removeCheck, style="Fancy.TButton")
 		updateButton = ttk.Button(self, text='Update Checking', command=self.updateCheck, style="Fancy.TButton")
@@ -891,30 +882,28 @@ class ResyBotCheckFrame(ttk.Frame):
 		dateentry.grid(column = 0, row = 2, sticky=(E))
 		date2label.grid(column = 0, row = 3, sticky=(W))
 		date2entry.grid(column = 0, row = 3, sticky=(E))
-		seatslabel.grid(column = 0, row = 4, sticky=(W))
-		seatsentry.grid(column = 0, row = 4, sticky=(E))
-		nstoplabel.grid(column = 2, row = 1, sticky=(W))
-		nstopentry.grid(column = 2, row = 1, sticky=(E))
-		proxylabel.grid(column = 2, row = 2, sticky=(W))
-		proxyentry.grid(column = 2, row = 2, sticky=(E))
-		minidlelabel.grid(column = 2, row = 3, sticky=(W))
-		minidleentry.grid(column = 2, row = 3, sticky=(E))
-		maxidlelabel.grid(column = 2, row = 4, sticky=(W))
-		maxidleentry.grid(column = 2, row = 4, sticky=(E))
+		seatslabel.grid(column = 2, row = 1, sticky=(W))
+		seatsentry.grid(column = 2, row = 1, sticky=(E))
+		nstoplabel.grid(column = 2, row = 2, sticky=(W))
+		nstopentry.grid(column = 2, row = 2, sticky=(E))
+		proxylabel.grid(column = 2, row = 3, sticky=(W))
+		proxyentry.grid(column = 2, row = 3, sticky=(E))
 
-		saveButton.grid(column = 2, row = 5, sticky = (N, E))
-		runButton.grid(column = 0, row = 5, sticky = (N, W))
-		updateButton.grid(column = 2, row = 5, sticky = (N, W))
-		removeButton.grid(column = 0, row = 5, sticky = (N,E))
-		closeButton.grid(column = 2, row = 7, sticky = (E))
-		logButton.grid(column = 1, row = 5, sticky = (N))
+		# viewButton.grid(column=2, row=8, sticky=(W))
+		saveButton.grid(column = 2, row = 4, sticky = (N, E))
+		runButton.grid(column = 0, row = 4, sticky = (N, W))
+		updateButton.grid(column = 2, row = 4, sticky = (N, W))
+		removeButton.grid(column = 0, row = 4, sticky = (N,E))
+		closeButton.grid(column = 2, row = 6, sticky = (E))
+		logButton.grid(column = 1, row = 4, sticky = (N))
 
 		self.tableOutputFrame()
 		self.viewCheck()
 		self.resetForm()
                 
 	def savelist(self, **kwargs):
-		db.insertCheck(url=kwargs['url'].get(), startdate=str(kwargs['date'].get_date()), enddate=str(kwargs['date2'].get_date()), seats=kwargs['seats'].get(), nonstop=kwargs['nonstop'].get(),  proxy=kwargs['proxy'].get(), minidle=kwargs['minidle'].get(), maxidle=kwargs['maxidle'].get())
+		db.insertCheck(url=kwargs['url'].get(), startdate=str(kwargs['date'].get_date()), enddate=str(kwargs['date2'].get_date()), seats=kwargs['seats'].get(), nonstop=kwargs['nonstop'].get(),  proxy=kwargs['proxy'].get())
+		# savejson(filename="commandlist.json", valuelist=self.commandlist)
 		self.viewCheck()
 		messagebox.showinfo("Message box","Checking Availability list Saved")
 		self.resetForm()
@@ -933,14 +922,13 @@ class ResyBotCheckFrame(ttk.Frame):
 			for i in selection:
 				item = self.out.item(i)['values']
 				# filelog = open(f"logs/checking_stdout_{item[0]}.log", "w")
-				comlist=[PYLOC, "modules/resybotcheck1.py", "-u", '{}'.format(item[9]), "-sd", '{}'.format(item[2]), "-ed", '{}'.format(item[3]), "-s", '{}'.format(item[4]), "-up", '{}'.format(item[6]), "-ns", '{}'.format(item[5]), "-id", '{}'.format(item[0]), "-mn", '{}'.format(item[7]), "-mx", '{}'.format(item[8])]
-				run_module(comlist=comlist)
+				comlist=[PYLOC, "modules/resybotcheck1.py", "-u", '{}'.format(item[7]), "-sd", '{}'.format(item[2]), "-ed", '{}'.format(item[3]), "-s", '{}'.format(item[4]), "-up", '{}'.format(item[6]), "-ns", '{}'.format(item[5]), "-id", '{}'.format(item[0])]
 				# proc=Popen(comlist, creationflags=CREATE_NEW_CONSOLE, stdout=filelog)
-				# proc=Popen(comlist, creationflags=CREATE_NEW_CONSOLE)
+				proc=Popen(comlist, creationflags=CREATE_NEW_CONSOLE)
 				
 				# proc=Popen(comlist)
 
-				# print(proc.pid)
+				print(proc.pid)
 				# for line in proc.stdout:
 				# 	sys.stdout.write(line)
 				# 	filelog.write(line)
@@ -973,7 +961,7 @@ class ResyBotCheckFrame(ttk.Frame):
 		if self.chosenRow == None:
 			messagebox.showerror("Error!", "Please Choose a Bot Check Availability Record to Update!")
 			return
-		db.updateCheck(comid=self.chosenRow[0], url=self.url.get(), startdate=self.date.get(), enddate=self.date2.get(), seats=self.defseat.get(), nonstop=self.nstop.get(), proxy=self.proxy.get(), minidle=self.minidle.get(), maxidle=self.maxidle.get())
+		db.updateCheck(comid=self.chosenRow[0], url=self.url.get(), startdate=self.date.get(), enddate=self.date2.get(), seats=self.defseat.get(), nonstop=self.nstop.get(), proxy=self.proxy.get())
 		self.viewCheck()
 		messagebox.showinfo("Info", "Check Availability Updates..")
 		self.resetForm()
@@ -998,14 +986,11 @@ class ResyBotCheckFrame(ttk.Frame):
 		self.defseat.set("2")
 		self.nstop.set("No")
 		self.proxy.set("<Not Set>")
-		self.minidle.set("10")
-		self.maxidle.set("60")
-
 
 	def tableOutputFrame(self):
 		self.tableFrame = Frame(self, bg="#DADDE6")
 		# self.tableFrame.place(x=0, y=400, width=1290, height=260)
-		self.tableFrame.grid(column=0, row=6, columnspan=3,sticky = (W, E, N, S))
+		self.tableFrame.grid(column=0, row=5, columnspan=3,sticky = (W, E, N, S))
 		# titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S), columnspan=3)
 
 		self.yScroll = Scrollbar(self.tableFrame)
@@ -1014,7 +999,7 @@ class ResyBotCheckFrame(ttk.Frame):
 		self.style.configure("mystyle.Treeview", font=('Calibri', 12), rowheight=25)
 		self.style.configure("mystyle.Treeview.Heading", font=('Times New Roman', 14, "bold"), sticky="w")
 		self.out = ttk.Treeview(self.tableFrame, yscrollcommand=self.yScroll.set, 
-        columns=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), style="mystyle.Treeview")
+        columns=(1, 2, 3, 4, 5, 6, 7, 8), style="mystyle.Treeview")
 		self.out.heading("1", text="ID")
 		self.out.column("1", width=0, stretch="no")
 		self.out.heading("2", text="Restaurant")
@@ -1029,12 +1014,8 @@ class ResyBotCheckFrame(ttk.Frame):
 		self.out.column("6", width=70, anchor="center", stretch="no")
 		self.out.heading("7", text="Proxy")
 		self.out.column("7", width=10, anchor="center")
-		self.out.heading("8", text="Min Idle")
-		self.out.column("8", width=2, anchor="center")
-		self.out.heading("9", text="Max Idle")
-		self.out.column("9", width=2, anchor="center")
-		self.out.heading("10", text="URL")
-		self.out.column("10", width=0, stretch=0)
+		self.out.heading("8", text="URL")
+		self.out.column("8", width=0, stretch=0)
 
 		self.out['show'] = 'headings'
 		self.out.bind("<ButtonRelease-1>", self.getData)
@@ -1047,14 +1028,14 @@ class ResyBotCheckFrame(ttk.Frame):
 			self.selectedRow = self.out.focus()
 			self.selectedData = self.out.item(self.selectedRow)
 			self.chosenRow = self.selectedData["values"]
-			self.url.set(self.chosenRow[9])
+			self.url.set(self.chosenRow[7])
 			self.date.set(self.chosenRow[2])
 			self.date2.set(self.chosenRow[3])
 			self.defseat.set(self.chosenRow[4])
 			self.nstop.set(self.chosenRow[5])
 			self.proxy.set(self.chosenRow[6])
-			self.minidle.set(self.chosenRow[7])
-			self.maxidle.set(self.chosenRow[8])
+
+
 		except IndexError as error:
 			pass
 

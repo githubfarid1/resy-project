@@ -11,7 +11,7 @@ from datetime import datetime, date, timedelta
 import random
 import time
 from requests import Session, HTTPError
-from resy_bot2.errors import NoSlotsError, ExhaustedRetriesError
+from resy_bot2.errors import NoSlotsError, ExhaustedRetriesError, Get500Error
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
 from playwright.sync_api import sync_playwright
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 
 def random_delay(min_seconds, max_seconds):
-    time.sleep(random.uniform(min_seconds, max_seconds))
+    return random.uniform(min_seconds, max_seconds)
 
 def intercept_request(request):
     if "https://api.resy.com/2/config" in request.url:
@@ -85,7 +85,8 @@ def main():
     parser.add_argument('-up', '--proxy', type=str,help="Use Proxy")
     parser.add_argument('-ns', '--nonstop', type=str,help="Non Stop Checking")
     parser.add_argument('-id', '--id', type=str,help="Record ID")
-
+    parser.add_argument('-mn', '--minidle', type=str,help="Min Idle Time")
+    parser.add_argument('-mx', '--maxidle', type=str,help="Max Idle Time")
 
     args = parser.parse_args()
     start_date = datetime.strptime(str(args.startdate), '%Y-%m-%d').date()
@@ -146,6 +147,10 @@ def main():
                     myTable = PrettyTable(["TIME","RESER. TYPE"])
                     myTable.align ="l"
                     slots = check_now(resy_config=resy_config, reservation_config=reservation_config)
+                    if len(slots) != 0:
+                        tmpstr = f"Found {len(slots)} Slots"
+                        print(tmpstr)
+                        flog.write(tmpstr + "\n")
                     for slot in slots:
                         # time.sleep(5)
                         dtime = str(slot.config.token).split("/")[-3][:5]
@@ -154,11 +159,17 @@ def main():
                     # print(venue_id)
                     print(myTable)
                     flog.write(str(myTable))
-                except Exception as e:
-                    print(e)
-                    tmpstr = "Slots is Empty"
+                except (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
+                    tmpstr = str(e)
                     print(tmpstr)
                     flog.write(tmpstr + "\n")
+                except Get500Error as e:
+                    tmpstr = str(e)
+                    print(tmpstr)
+                    flog.write(tmpstr + "\n")
+
+                except Exception as e:
+                    print("Bot Error:", str(e))
                 print(datetime.now())
                 flog.write("\n" + str(datetime.now()) +"\n")
                 print("")
@@ -169,9 +180,13 @@ def main():
                 tmpstr = "____________________________Repeat________________________________"
                 print(tmpstr)
                 flog.write(tmpstr + "\n\n")
-
+                sleeptime = random_delay(int(args.minidle), int(args.maxidle))
+                print("Idle Time", int(sleeptime), "seconds")
+                time.sleep(sleeptime)
+        tmpstr = "Process Finished..."
+        flog.write(tmpstr+"\n")
         flog.close()
-        print("Process Finished...")
+        input(tmpstr)
     except:
         flog.close()
     

@@ -17,6 +17,7 @@ from resy_bot2.models import (
     VenueBody,
 )
 from user_agent import generate_user_agent
+from resy_bot2.errors import Get500Error
 # import os
 # import sys
 # current = os.path.dirname(os.path.realpath(__file__))
@@ -104,7 +105,9 @@ class ResyApiAccess:
         if not resp.ok:
             #frd
             if resp.status_code == 500:
-                logger.info(self.get_ip_used().strip())
+                ipused = self.get_ip_used().strip()
+                logger.info(ipused)
+                raise Get500Error(f"Error, IP Used: {ipused}")
             #----
             raise HTTPError(
                 f"Failed to find booking slots: {resp.status_code}, {resp.text}"
