@@ -15,6 +15,9 @@ from subprocess import Popen, check_call
 from user_agent import generate_user_agent
 import json
 import requests
+from database import Database
+
+db = Database("db.sqlite3")
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -33,14 +36,14 @@ def login_to_resy(page, email, password):
 
     page.fill('input[name="email"]', email)
     page.fill('input[name="password"]', password)
-    
+    # breakpoint()
     page.click('[name="login_form"] button', timeout=10000)
     page.evaluate("() => document.fonts.ready")
 
 def random_delay(min_seconds, max_seconds):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
-def intercept_request(request, profilename):
+def intercept_request(request, email):
     # print(request.url, "tes")
     # we can update requests with custom headers
     api_key = ''
@@ -71,16 +74,18 @@ def intercept_request(request, profilename):
             if payment_method_id == None:
                 payment_method_id = 999999
 
-            file = open("profilelist.json", "r")
-            profilelist = json.load(file)
-            tmplist = []
-            for dl in profilelist:
-                if dl['profilename'] == profilename:
-                    tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token, "payment_method_id": payment_method_id})
-                else:
-                    tmplist.append(dl)
-            with open("profilelist.json", "w") as final:
-                json.dump(tmplist, final)
+            account = db.getAccount(email=email)
+            db.updateAccount(comid=account[0], email=account[1], password=account[2], token=token, api_key=api_key, payment_method_id=payment_method_id)
+            # file = open("profilelist.json", "r")
+            # profilelist = json.load(file)
+            # tmplist = []
+            # for dl in profilelist:
+            #     if dl['profilename'] == profilename:
+            #         tmplist.append({"profilename": profilename, "email":dl['email'], "password": dl['password'], "api_key": api_key, "token":token, "payment_method_id": payment_method_id})
+            #     else:
+            #         tmplist.append(dl)
+            # with open("profilelist.json", "w") as final:
+            #     json.dump(tmplist, final)
             input("token Updated.. " + CLOSE_MESSAGE)
             sys.exit()
         except:
@@ -90,13 +95,14 @@ def intercept_request(request, profilename):
 def main():
     # breakpoint()
     parser = argparse.ArgumentParser(description="Chromium Setup")
-    parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
+    # parser.add_argument('-cp', '--chprofile', type=str,help="Chrome Profile Name")
     parser.add_argument('-em', '--email', type=str,help="Resy Email")
     parser.add_argument('-pw', '--password', type=str,help="Resy Password")
     args = parser.parse_args()
         
-    if not args.chprofile or not args.email or not args.password:
-        input(" ".join(['Please add complete parameters, ex: python chromium_setup.py -cp [chrome_profile] -em [email] -pw [password]', CLOSE_MESSAGE]))
+    # if not args.chprofile or not args.email or not args.password:
+    if not args.email or not args.password:
+        input(" ".join(['Please add complete parameters, ex: python chromium_setup.py -em [email] -pw [password]', CLOSE_MESSAGE]))
         sys.exit()
     error = True
     try:
@@ -113,13 +119,13 @@ def main():
             browser =  pr.chromium.launch(headless=True, args=wargs)
             page = browser.new_page()
             stealth_sync(page)
-            page.on("request", lambda request: intercept_request(request, profilename=args.chprofile))
+            page.on("request", lambda request: intercept_request(request, email=args.email))
 
             page.goto("https://resy.com", wait_until="domcontentloaded", timeout=20000)
             random_delay(2,5)
-            
+            # breakpoint()
             if page.query_selector('button.Button--login'):
-                login_to_resy(page, args.email, args.password)
+                login_to_resy(page, str(args.email), str(args.password))
                 message = "Logged in successfully."
                 time.sleep(3)
                 if page.query_selector('button.Button--login'):

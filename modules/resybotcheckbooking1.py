@@ -30,35 +30,6 @@ from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_IDLE_TIME
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 
-def connect_to_wifi(ssid, password):
-    wifi = PyWiFi()
-    iface = wifi.interfaces()[0]
-    
-    # Remove all existing profiles
-    iface.remove_all_network_profiles()
-    
-    # Create a new profile
-    profile = Profile()
-    profile.ssid = ssid
-    profile.auth = const.AUTH_ALG_OPEN
-    profile.akm.append(const.AKM_TYPE_WPA2PSK)
-    profile.cipher = const.CIPHER_TYPE_CCMP
-    profile.key = password
-    
-    # Add and connect to the new profile
-    iface.add_network_profile(profile)
-    iface.connect(profile)
-    
-    # Wait for connection
-    import time
-    time.sleep(10)
-    
-    # Check connection status
-    if iface.status() == const.IFACE_CONNECTED:
-        return f"Successfully connected to {ssid}"
-    else:
-        return "Failed to connect"
-
 def random_delay(min_seconds, max_seconds):
     return random.uniform(min_seconds, max_seconds)
 
@@ -71,6 +42,14 @@ def intercept_request(request):
         except:
             return request        
     return request
+
+def convert24(time):
+    t = datetime.strptime(time, '%I:%M %p')
+    return t.strftime('%H:%M')
+
+def convert24wsecond(time):
+    t = datetime.strptime(time, '%I:%M:%S %p')
+    return t.strftime('%H:%M:%S')
 
 def get_api_key():
     with sync_playwright() as pr:
@@ -96,8 +75,15 @@ def check_now(resy_config: dict, reservation_config: dict) -> str:
     config = ResyConfig(**config_data)
     manager = ResyManager.build(config)
     timed_request = TimedReservationRequest(**reservation_data)
-    # breakpoint()
     return manager.check_reservation_with_retries(timed_request.reservation_request)
+
+def book_now(resy_config: dict, reservation_config: dict) -> str:
+    config_data = resy_config
+    reservation_data = reservation_config
+    config = ResyConfig(**config_data)
+    manager = ResyManager.build(config)
+    timed_request = TimedReservationRequest(**reservation_data)
+    return manager.make_reservation_with_retries(timed_request.reservation_request)
 
 def get_venue_id(resy_config: dict, urladdress: str) -> str:
     config_data = resy_config
@@ -116,17 +102,27 @@ def main():
     parser.add_argument('-id', '--id', type=str,help="Record ID")
 
     args = parser.parse_args()
-    data = db.getCheck(id=args.id)
+    data = db.getCheckBooking(id=args.id)
+
     id = data[0]
     url = data[1]
     startdate = data[2]
     enddate = data[3]
     seats = data[4]
-    nonstop = data[5]
-    proxy = data[6]
-    minidle = data[7]
-    maxidle = data[8]
-    retsecs = data[9]
+    account = data[5]
+    timewanted = data[6]
+    hoursba = data[7]
+    breservation = data[8]
+    nonstop = data[9]
+    proxy = data[10]
+    minidle = data[11]
+    maxidle = data[12]
+    retsecs = data[13]
+    if breservation == '<Not Set>':
+        reservation_type = None
+    else:
+        reservation_type = breservation
+
     start_date = datetime.strptime(startdate, '%Y-%m-%d').date()
     end_date = datetime.strptime(enddate, '%Y-%m-%d').date()
     get_api_key()
@@ -138,23 +134,21 @@ def main():
         proxy = db.getProxy(proxy)
         http_proxy = proxy[2]
         https_proxy = proxy[3]
+    
     resy_config = {"api_key": api_key, "token": '', "payment_method_id": 999999, "email":'', "password":'', "http_proxy": http_proxy, "https_proxy": https_proxy, "retry_count": 1, "seconds_retry": float(retsecs)}
     venue_id = get_venue_id(resy_config=resy_config, urladdress=url)
+    
+    accountdata = db.getAccount(email=account)
+    # breakpoint()
+    password = accountdata[2]
+    token = accountdata[3]
+    api_key = accountdata[4]
+    payment_method_id = accountdata[5]
+    resy_config_booking = {"api_key": api_key, "token": token, "payment_method_id": payment_method_id, "email":account, "password":password, "http_proxy": http_proxy, "https_proxy": https_proxy, "retry_count": 1, "seconds_retry": float(retsecs)}
     strdateyesterday = datetime.strftime(datetime.now()-timedelta(days=1), '%Y-%m-%d')
     flog = open(f"logs/checking_{id}.log", "w")
-    # breakpoint()
-    # stoptime = datetime.now() + timedelta(minutes = 5)
     try:
         while True:
-            # if datetime.now() >= stoptime:
-            #     stoptime = datetime.now() + timedelta(minutes = 5)
-            #     if "DilarangMasuk" in str(subprocess.check_output(["netsh", "wlan", "show", "interfaces"])):
-            #         testconnect = connect_to_wifi('Redmi Note 9T', '358358358')
-            #     else:
-            #         testconnect = connect_to_wifi('DilarangMasuk', '358358358')
-            #     print(testconnect)
-            #     flog.write(testconnect)
-
             tmpstr = f"Restaurant URL: {url}"
             print(tmpstr)
             flog.write(tmpstr + "\n")
@@ -174,13 +168,13 @@ def main():
                 "reservation_request": {
                 "party_size": int(seats),
                 "venue_id": venue_id,
-                "window_hours": 0,
+                "window_hours": int(hoursba),
                 "prefer_early": False,
                 "ideal_date": searchdate,
                 #   "days_in_advance": 14,
-                "ideal_hour": 5,
-                "ideal_minute": 0,
-                "preferred_type": None
+                "ideal_hour": int(convert24(timewanted).split(":")[0]),
+                "ideal_minute": int(convert24(timewanted).split(":")[1]),
+                "preferred_type": reservation_type
                 },
                 "expected_drop_hour": 9,
                 "expected_drop_minute": 0, 
@@ -197,14 +191,27 @@ def main():
                         tmpstr = f"Found {len(slots)} Slots"
                         print(tmpstr)
                         flog.write(tmpstr + "\n")
-                    for slot in slots:
-                        # time.sleep(5)
-                        dtime = str(slot.config.token).split("/")[-3][:5]
-                        reservation = str(slot.config.token).split("/")[-1]
-                        myTable.add_row([dtime, reservation])
-                    # print(venue_id)
-                    print(myTable)
-                    flog.write(str(myTable))
+                        for slot in slots:
+                            dtime = str(slot.config.token).split("/")[-3][:5]
+                            reservation = str(slot.config.token).split("/")[-1]
+                            myTable.add_row([dtime, reservation])
+                        print(myTable)
+                        flog.write(str(myTable))
+                        # breakpoint()
+                        if account != "<Not Set>":
+                            try:
+                                tmpstr = "Trying to Book.."
+                                print(tmpstr)
+                                flog.write(tmpstr + "\n")
+                                breakpoint()
+                                book_now(resy_config=resy_config_booking, reservation_config=reservation_config)
+                                input("Reservation Success..." + CLOSE_MESSAGE)
+                                sys.exit()
+                            except (ExhaustedRetriesError, NoSlotsError) as e:
+                                tmpstr = str(e)
+                                print(tmpstr)
+                                flog.write(tmpstr + "\n")
+                                continue
                 except (HTTPError, ExhaustedRetriesError, NoSlotsError) as e:
                     tmpstr = str(e)
                     print(tmpstr)

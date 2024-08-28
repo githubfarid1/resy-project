@@ -14,6 +14,8 @@ from requests import Session, HTTPError
 from resy_bot2.errors import NoSlotsError, ExhaustedRetriesError
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
+from database import Database
+db = Database("db.sqlite3")
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -75,8 +77,12 @@ def main():
     if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle:
         input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle]', CLOSE_MESSAGE]))
         sys.exit()
-    # breakpoint()
-    
+    profile = db.getAccount(args.chprofile)
+    email = profile[1]
+    password = profile[2]
+    token = profile[3]
+    api_key = profile[4]
+    payment_method_id = profile[5]
     file = open("profilelist.json", "r")
     profilelist = json.load(file)
     for profile in profilelist:
@@ -89,7 +95,7 @@ def main():
     myTable.add_row(["Time Wanted", args.time])
     myTable.add_row(["Seats", args.seats])
     myTable.add_row(["Reservation Type", args.reservation])
-    myTable.add_row(["Account", profile['email']])
+    myTable.add_row(["Account", email])
     myTable.add_row(["Bot Run Date", args.rdate])
     myTable.add_row(["Bot Run Time",args.rtime])
     myTable.add_row(["Range Hours",args.rhours])
@@ -123,12 +129,10 @@ def main():
         https_proxy = ''
         http_proxy = ''
         if args.proxy != '<Not Set>':
-            file = open("proxylist.json", "r")
-            listvalue = json.load(file)
-            proxy = [prof for prof in listvalue if prof['profilename']==args.proxy]
-            http_proxy = proxy[0]['http_proxy']
-            https_proxy = proxy[0]['https_proxy']
-        resy_config = {"api_key": profile['api_key'], "token": profile["token"], "payment_method_id":profile["payment_method_id"], "email":profile["email"], "password":profile["password"], "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry)}
+            proxy = db.getProxy(args.proxy)
+            http_proxy = proxy[2]
+            https_proxy = proxy[3]
+        resy_config = {"api_key": api_key, "token": token, "payment_method_id":payment_method_id, "email":email, "password":password, "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry), "seconds_retry": 0.5}
         
         if args.reservation == '<Not Set>':
             reservation_type = None

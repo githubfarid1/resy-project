@@ -189,8 +189,12 @@ class MainFrame(ttk.Frame):
 		resybotv4Button = FrameButton(self, window, text="Resy Bot Booking Form", class_frame=ResyBotv5Frame)
 		resybotcheckButton = FrameButton(self, window, text="Resy Bot Checking Availability Form", class_frame=ResyBotCheckFrame)
 		resybotbookingButton = FrameButton(self, window, text="Resy Bot Checking Availability and Booking Form", class_frame=ResyBotBookingFrame)
+		# reservationlistButton = FrameButton(self, window, text="Update Reservation Type", class_frame=AddReservationFrame)
 		reservationlistButton = FrameButton(self, window, text="Reservation Type Form", class_frame=RerservationFrame)
+
+		# chromiumProfileButton = FrameButton(self, window, text="Update Chromium Profile", class_frame=ChromiumProfileFrame)
 		chromiumProfileButton = FrameButton(self, window, text="Account Form", class_frame=AccountFrame)
+
 		UpdateTokenButton = FrameButton(self, window, text="Update Account Token", class_frame=UpdateTokenFrame)
 		proxyProfileButton = FrameButton(self, window, text="Proxy Form", class_frame=ProxyFrame)
 
@@ -198,12 +202,274 @@ class MainFrame(ttk.Frame):
 		# # # layout
 		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
 		resybotv4Button.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		# resybotcheckButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		resybotbookingButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		reservationlistButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		chromiumProfileButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		UpdateTokenButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
-		proxyProfileButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		resybotcheckButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		resybotbookingButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		reservationlistButton.grid(column = 0, row = 4, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		chromiumProfileButton.grid(column = 0, row = 5, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		UpdateTokenButton.grid(column = 0, row = 6, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+		proxyProfileButton.grid(column = 0, row = 7, sticky=(W, E, N, S), padx=15, pady=5, columnspan=3)
+
+class AddReservationFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("reservationlist.json", "r")
+		listvalue = json.load(file)
+		tmplist = [value for value in listvalue]
+		setlist = set(tmplist)
+		RESERVATION_LIST = sorted(list(setlist), key=str.casefold)
+
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		titleLabel = TitleLabel(self, text="Update Reservation Type")
+		valuentry = Entry(self, width=180)
+		dlist = StringVar(value=RESERVATION_LIST)
+		self.valueslist = Listbox(self, width=180, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(entry=valuentry, valuelist=self.valueslist))
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.savelist(valuelist=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		valuentry.grid(column = 0, row = 1, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		self.valueslist.grid(column = 0, row = 2, sticky=(W))
+		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		closeButton.grid(column = 0, row = 8, sticky = (E))
+	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+			messagebox.showinfo("Message box", f"`{self.valueslist.get(i)}` deleted..")
+		self.valueslist.delete(selection)
+		savejson(filename="reservationlist.json", valuelist=self.valueslist)
+
+	def savelist(self, **kwargs):
+		with open("reservationlist.json", "w") as final:
+			json.dump(kwargs['valuelist'].get(0, END), final)
+		messagebox.showinfo("Message box","Reservation List saved..")
+
+	def addlist(self, **kwargs):
+		kwargs['valuelist'].insert(0, kwargs['entry'].get())
+		kwargs['entry'].delete(0, END)
+		savejson(filename="reservationlist.json", valuelist=kwargs['valuelist'])
+		messagebox.showinfo("Message box","New Reservation added..")
+
+class ChromiumProfileFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("profilelist.json", "r")
+		self.profilelist = json.load(file)
+		PROFILE_LIST = [f"{value['profilename']} | {value['email']} | {value['password']}" for value in self.profilelist]
+		# setlist = set(tmplist)
+		# PROFILE_LIST = sorted(self.profilelist, key=str.casefold)
+		# breakpoint()
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		titleLabel = TitleLabel(self, text="Update Chromium Profile")
+		profilenamentry = EntryWithPlaceholder(self, width=180, placeholder="Profile Name (Space Not allowed)")
+		emailentry = EntryWithPlaceholder(self, width=180, placeholder="Email")
+		passwordentry = EntryWithPlaceholder(self, width=180, placeholder="Password")
+
+		dlist = StringVar(value=PROFILE_LIST)
+		self.valueslist = Listbox(self, width=180, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(profilename=profilenamentry, email=emailentry, password=passwordentry, valuelist=self.valueslist))
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.savelist(valuelist=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		profilenamentry.grid(column = 0, row = 1, sticky=(W))
+		emailentry.grid(column = 0, row = 2, sticky=(W))
+		passwordentry.grid(column = 0, row = 3, sticky=(W))
+		self.valueslist.grid(column = 0, row = 4, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		# saveButton.grid(column = 0, row = 3, sticky = (W,N))
+		closeButton.grid(column = 0, row = 8, sticky = (E))
+	
+	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+			strselect = self.valueslist.get(i).split(" | ")[0]
+			messagebox.showinfo("Message box", f"`{strselect}` deleted..")
+		self.valueslist.delete(selection)
+		tmplist = []
+		for dl in self.profilelist:
+			if dl['profilename'] != strselect:
+				tmplist.append(dl)
+		self.profilelist = tmplist.copy()
+		savejson(filename="profilelist.json", valuelist=self.profilelist)
+		try:	
+			shutil.rmtree(CHROME_USER_DATA + os.path.sep + strselect)
+		except:
+			pass
+	def addlist(self, **kwargs):
+		self.profilelist.append({"profilename": kwargs['profilename'].get(), "email": kwargs['email'].get(), "password": kwargs['password'].get()})
+		if savejson(filename="profilelist.json", valuelist=self.profilelist, value=kwargs['profilename'].get()):
+			kwargs['valuelist'].insert(0, f"{kwargs['profilename'].get()} | {kwargs['email'].get()} | {kwargs['password'].get()}")
+		else:
+			# breakpoint()
+			self.profilelist.pop()
+		
+		kwargs['profilename'].delete(0, END)
+		kwargs['email'].delete(0, END)
+		kwargs['password'].delete(0, END)
+		
+		# messagebox.showinfo("Message box","New Period added..")
+
+class ProxyProfileFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		# configure
+		file = open("proxylist.json", "r")
+		self.proxylist = json.load(file)
+		PROXY_LIST = [f"{value['profilename']} | {value['http_proxy']} | {value['https_proxy']}" for value in self.proxylist]
+		# setlist = set(tmplist)
+		# PROFILE_LIST = sorted(self.profilelist, key=str.casefold)
+		# breakpoint()
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+		self.rowconfigure(6, weight=1)
+		self.rowconfigure(7, weight=1)
+		self.rowconfigure(8, weight=1)
+		self.rowconfigure(9, weight=1)
+		self.rowconfigure(10, weight=1)
+		self.rowconfigure(11, weight=1)
+		self.rowconfigure(12, weight=1)
+
+		titleLabel = TitleLabel(self, text="Update Proxy Profile")
+		profilenamentry = EntryWithPlaceholder(self, width=180, placeholder="Profile Name (Space is not allowed)")
+		httpproxyentry = EntryWithPlaceholder(self, width=180, placeholder="HTTP Proxy: proxy_type://username:password@proxy_address:port_number")
+		httpsproxyentry = EntryWithPlaceholder(self, width=180, placeholder="HTTPS Proxy: proxy_type://username:password@proxy_address:port_number")
+
+
+		dlist = StringVar(value=PROXY_LIST)
+		self.valueslist = Listbox(self, width=180, height=10, listvariable=dlist)
+		self.valueslist.bind( "<Double-Button-1>" , self.removeValue)
+		addButton = ttk.Button(self, text='Add', command = lambda:self.addlist(profilename=profilenamentry, http_proxy=httpproxyentry, https_proxy=httpsproxyentry, valuelist=self.valueslist))
+		closeButton = CloseButton(self)
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		profilenamentry.grid(column = 0, row = 1, sticky=(W))
+		httpproxyentry.grid(column = 0, row = 2, sticky=(W))
+		httpsproxyentry.grid(column = 0, row = 3, sticky=(W))
+
+		self.valueslist.grid(column = 0, row = 4, sticky=(W))
+		addButton.grid(column = 0, row = 1, sticky = (E))
+		closeButton.grid(column = 0, row = 4, sticky = (E, S))
+	
+	def removeValue(self, event):
+		if not messagebox.askyesno(title='confirmation',message='Do you want to remove it?'):
+			return
+		selection = self.valueslist.curselection()
+		for i in self.valueslist.curselection():
+			strselect = self.valueslist.get(i).split(" | ")[0]
+			messagebox.showinfo("Message box", f"`{strselect}` deleted..")
+		self.valueslist.delete(selection)
+		tmplist = []
+		for dl in self.proxylist:
+			if dl['profilename'] != strselect:
+				tmplist.append(dl)
+		self.proxylist = tmplist.copy()
+		savejson(filename="proxylist.json", valuelist=self.proxylist)
+
+	def addlist(self, **kwargs):
+		self.proxylist.append({"profilename": kwargs['profilename'].get(), "http_proxy": kwargs['http_proxy'].get(), "https_proxy": kwargs['https_proxy'].get()})
+		if savejson(filename="proxylist.json", valuelist=self.proxylist, value=kwargs['profilename'].get()):
+			kwargs['valuelist'].insert(0, f"{kwargs['profilename'].get()} | {kwargs['http_proxy'].get()} | {kwargs['https_proxy'].get()}")
+		else:
+			# breakpoint()
+			self.proxylist.pop()
+		
+		kwargs['profilename'].delete(0, END)
+		kwargs['http_proxy'].delete(0, END)
+		kwargs['https_proxy'].delete(0, END)
+		
+		# messagebox.showinfo("Message box","New Period added..")
+
+class SetupChromiumFrame(ttk.Frame):
+	def __init__(self, window) -> None:
+		super().__init__(window)
+		self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
+		self.config(padding="20 20 20 20", borderwidth=1, relief='groove')
+
+		self.columnconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+		self.columnconfigure(2, weight=1)
+		# self.columnconfigure(3, weight=1)
+		self.rowconfigure(0, weight=1)
+		self.rowconfigure(1, weight=1)
+		self.rowconfigure(2, weight=1)
+		self.rowconfigure(3, weight=1)
+		self.rowconfigure(4, weight=1)
+		self.rowconfigure(5, weight=1)
+				
+		titleLabel = TitleLabel(self, 'Chromium Profiles')
+		closeButton = CloseButton(self)
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileList = []
+		for text in [value['profilename'] for value in profilelisttmp]:
+			profileList.append(ttk.Button(self, text=text, command=lambda pro=text:self.chromeTester(pro)))
+
+		# layout
+		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=4)
+		closeButton.grid(column = 0, row = 6, sticky = (E, N, S), columnspan=4)
+
+		colnum = 0
+		rownum = 1
+		for profile in profileList:
+			if colnum == 3:
+				colnum = 0
+				rownum += 1
+			profile.grid(column = colnum, row = rownum, sticky=(W, E, N, S), padx=15, pady=5)
+			colnum += 1
+
+	def chromeTester(self, profile):
+		file = open("profilelist.json", "r")
+		profilelisttmp = json.load(file)
+		profileselected = [value for value in profilelisttmp if value['profilename']==profile]
+		run_module(comlist=[PYLOC, "modules/chromium_setup.py", "-cp", profile, "-em", profileselected[0]['email'], "-pw", profileselected[0]['password'] ])
 
 class UpdateTokenFrame(ttk.Frame):
 	def __init__(self, window) -> None:
