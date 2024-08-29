@@ -1406,7 +1406,8 @@ class ResyBotBookingFrame(ttk.Frame):
 		if self.chosenRow == None:
 			messagebox.showerror("Error!", "Please Choose a Bot Check Availability Record to Update!")
 			return
-		db.updateCheckBooking(comid=self.chosenRow[0], url=self.url.get(), startdate=self.date.get(), enddate=self.date2.get(), seats=self.defseat.get(), account=self.account.get(), timewanted=self.time.get(), hoursba=self.defrange.get(), reservation=self.reservation.get(), nonstop=self.nstop.get(), proxy=self.proxy.get(), minidle=self.minidle.get(), maxidle=self.maxidle.get(), retrysec=self.retrysec.get())
+		formatted_time = convert24time(self.timeentry)
+		db.updateCheckBooking(comid=self.chosenRow[0], url=self.url.get(), startdate=self.date.get(), enddate=self.date2.get(), seats=self.defseat.get(), account=self.account.get(), timewanted=formatted_time, hoursba=self.defrange.get(), reservation=self.reservation.get(), nonstop=self.nstop.get(), proxy=self.proxy.get(), minidle=self.minidle.get(), maxidle=self.maxidle.get(), retrysec=self.retrysec.get())
 		self.viewCheckBooking()
 		messagebox.showinfo("Info", "Check Availability Updates..")
 		self.resetForm()
