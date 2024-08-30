@@ -25,6 +25,8 @@ from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_IDLE_TIME
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
 
+
+# breakpoint()
 def random_delay(min_seconds, max_seconds):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
@@ -74,7 +76,7 @@ def main():
     parser.add_argument('-mx', '--maxidle', type=str,help="Max Idle Time")
 
     args = parser.parse_args()
-    breakpoint()
+    # breakpoint()
     if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle:
         input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle]', CLOSE_MESSAGE]))
         sys.exit()
@@ -110,9 +112,9 @@ def main():
     myTable.add_row(["Max Idle Time", args.maxidle])
     print(myTable)
     headers = {
-        "Authorization": 'ResyAPI api_key="{}"'.format(profile['api_key']),
-        "X-Resy-Auth-Token": profile['token'],
-        "X-Resy-Universal-Auth": profile['token'],
+        "Authorization": 'ResyAPI api_key="{}"'.format(api_key),
+        "X-Resy-Auth-Token": token,
+        "X-Resy-Universal-Auth": token,
         "Origin": "https://resy.com",
         "X-origin": "https://resy.com",
         "Referrer": "https://resy.com/",
@@ -142,6 +144,8 @@ def main():
         #     http_proxy = proxy[2]
         #     https_proxy = proxy[3]
         resy_config = {"api_key": api_key, "token": token, "payment_method_id":payment_method_id, "email":email, "password":password, "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry), "seconds_retry": 0.5}
+        # resy_config = {"api_key": api_key, "token": '', "payment_method_id":99999, "email":email, "password":password, "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry), "seconds_retry": 0.5}
+
         if args.reservation == '<Not Set>':
             reservation_type = None
         else:

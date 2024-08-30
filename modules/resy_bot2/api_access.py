@@ -26,7 +26,7 @@ from resy_bot2.errors import Get500Error
 # from settings import PROXIES
 
 logger = logging.getLogger(__name__)
-logger.setLevel("ERROR")
+logger.setLevel("INFO")
 
 
 def build_session(config: ResyConfig) -> Session:
@@ -49,7 +49,7 @@ def build_session(config: ResyConfig) -> Session:
             'https': config.https_proxy,
         }
         session.proxies.update(proxies)
-        logger.info("Proxy Updated")
+        # logger.info("Proxy Updated")
     return session
 
 
@@ -92,7 +92,6 @@ class ResyApiAccess:
 
     def find_booking_slots(self, params: FindRequestBody) -> List[Slot]:
         find_url = RESY_BASE_URL + ResyEndpoints.FIND.value
-
         logger.info(
             f"{datetime.now().isoformat()} Sending request to find booking slots"
         )

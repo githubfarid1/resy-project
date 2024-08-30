@@ -23,7 +23,7 @@ from resy_bot2.selectors import AbstractSelector, SimpleSelector
 import time
 
 logger = logging.getLogger(__name__)
-logger.setLevel("ERROR")
+logger.setLevel("INFO")
 
 
 class ResyManager:
@@ -59,10 +59,8 @@ class ResyManager:
 
     def make_reservation(self, reservation_request: ReservationRequest) -> str:
         body = build_find_request_body(reservation_request)
-
         slots = self.api_access.find_booking_slots(body)
         logger.info(f"Returned: {slots}")
-
         if len(slots) == 0:
             raise NoSlotsError("No Slots Found")
         else:
@@ -105,16 +103,16 @@ class ResyManager:
             f"Retried {self.retry_config.n_retries} times, " "without finding a slot"
         )
 
-
-        
     def make_reservation_with_retries(
         self, reservation_request: ReservationRequest
     ) -> str:
         for _ in range(self.retry_config.n_retries):
             try:
+                time.sleep(self.retry_config.seconds_between_retries)
                 return self.make_reservation(reservation_request)
 
             except NoSlotsError:
+                # breakpoint()
                 logger.info(
                     f"no slots, retrying; currently {datetime.now().isoformat()}"
                 )
