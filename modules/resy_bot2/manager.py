@@ -23,7 +23,7 @@ from resy_bot2.selectors import AbstractSelector, SimpleSelector
 import time
 
 logger = logging.getLogger(__name__)
-logger.setLevel("INFO")
+logger.setLevel("ERROR")
 
 
 class ResyManager:
