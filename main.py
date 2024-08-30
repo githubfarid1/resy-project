@@ -156,6 +156,7 @@ class Window(Tk):
 		if len(db.viewCommand()) == 0:
 			for dt in dbold.viewCommand():
 				db.insertCommand(url=dt[18], datewanted=dt[2], timewanted=dt[3], hoursba=dt[4], seats=dt[5],reservation=dt[6],rundate=dt[7],runtime=dt[8], runnow=dt[9],account=dt[10], nonstop=dt[11], duration=dt[12],proxy=dt[13],retry=dt[14],minidle=dt[15],maxidle=dt[16])
+		
 		messagebox.showinfo(title='Info', message='the Data has updated...')
 
 class MainFrame(ttk.Frame):
@@ -1114,21 +1115,25 @@ class ProxyFrame(ttk.Frame):
 		titleLabel = TitleLabel(self, text="Proxy Form")
 		namelabel = Label(self, text="Name: ")
 		self.name = StringVar()
-		nameentry = Entry(self, width=60, textvariable=self.name)
-		httplabel = Label(self, text="Http: ")
-		self.http = StringVar()
-		httpentry = Entry(self, width=60, textvariable=self.http)
-		httpslabel = Label(self, text="Https: ")
-		self.https = StringVar()
-		httpsentry = Entry(self, width=60, textvariable=self.https)
-
+		nameentry = Entry(self, width=133, textvariable=self.name)
+		httplabel = Label(self, text="Proxies: ")
+		# self.http = StringVar()
+		# httpentry = Entry(self, width=60, textvariable=self.http)
+		self.httpentry = Text(self, width=100, height=15)
+		# self.httpentry.insert()
+	
+		# httpslabel = Label(self, text="Https: ")
+		# self.https = StringVar()
+		# httpsentry = Entry(self, width=60, textvariable=self.https)
 
 		style = ttk.Style()
 		# style.theme_use("clam")
 		style.configure("Fancy.TButton", font=("Cooper Black", 12), foreground="blue", background="green")
 
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Insert', command = lambda:self.savelist(name=nameentry, http=httpentry, https=httpsentry), style="Fancy.TButton")
+		# saveButton = ttk.Button(self, text='Insert', command = lambda:self.savelist(name=nameentry, http=httpentry, https=httpsentry), style="Fancy.TButton")
+		saveButton = ttk.Button(self, text='Insert', command = lambda:self.savelist(name=nameentry, http=self.httpentry), style="Fancy.TButton")
+
 		removeButton = ttk.Button(self, text='Delete', command=self.removeData, style="Fancy.TButton")
 		updateButton = ttk.Button(self, text='Update', command=self.updateData, style="Fancy.TButton")
 
@@ -1137,9 +1142,10 @@ class ProxyFrame(ttk.Frame):
 		namelabel.grid(column = 0, row = 2, sticky=(W,N))
 		nameentry.grid(column = 0, row = 2, sticky=(E,N), padx=30)
 		httplabel.grid(column = 0, row = 3, sticky=(W,N))
-		httpentry.grid(column = 0, row = 3, sticky=(E,N), padx=30)
-		httpslabel.grid(column = 0, row = 4, sticky=(W,N))
-		httpsentry.grid(column = 0, row = 4, sticky=(E,N), padx=30)
+		self.httpentry.grid(column = 0, row = 3, sticky=(E,N), padx=30)
+		# httpslabel.grid(column = 0, row = 4, sticky=(W,N))
+		# httpsentry.grid(column = 0, row = 4, sticky=(E,N), padx=30)
+		# proxyentry.grid(column = 0, row = 4, sticky=(E,N), padx=30)
 
 		saveButton.grid(column = 0, row = 5, sticky = (N, E), padx=30)
 		updateButton.grid(column = 0, row = 5, sticky = (N))
@@ -1152,7 +1158,9 @@ class ProxyFrame(ttk.Frame):
                 
 
 	def savelist(self, **kwargs):
-		db.insertProxy(name=kwargs['name'].get(),http=kwargs['http'].get(), https=kwargs['https'].get())
+		# db.insertProxy(name=kwargs['name'].get(),http=kwargs['http'].get(), https=kwargs['https'].get())
+		db.insertProxy(name=kwargs['name'].get(),http=kwargs['http'].get("1.0",END), https='')
+
 		self.viewData()
 		messagebox.showinfo("Message box","Proxy list Saved")
 		self.resetForm()
@@ -1184,15 +1192,16 @@ class ProxyFrame(ttk.Frame):
 		if self.chosenRow == None:
 			messagebox.showerror("Error!", "Please Choose a Proxy Record to Update!")
 			return
-		db.updateProxy(comid=self.chosenRow[0], name=self.name.get(), http=self.http.get(), https=self.https.get())
+		db.updateProxy(comid=self.chosenRow[0], name=self.name.get(), http=self.httpentry.get("1.0", END), https='')
 		self.viewData()
 		messagebox.showinfo("Info", "Proxy Updates..")
 		self.resetForm()
 
 	def resetForm(self):
 		self.name.set("")
-		self.http.set("")
-		self.https.set("")
+		# self.http.set("")
+		# self.https.set("")
+		self.httpentry.delete("1.0", END)
 
 	def tableOutputFrame(self):
 		style = ttk.Style()
@@ -1204,9 +1213,9 @@ class ProxyFrame(ttk.Frame):
 		self.out.heading("2", text="Name")
 		self.out.column("2", width=100, stretch="yes")
 		self.out.heading("3", text="HTTP")
-		self.out.column("3", width=100, stretch="yes")
+		self.out.column("3", width=200, stretch="yes")
 		self.out.heading("4", text="HTTPS")
-		self.out.column("4", width=100, stretch="yes")
+		self.out.column("4", width=0, stretch="no")
 
 		self.out['show'] = 'headings'
 		self.out.bind("<ButtonRelease-1>", self.getData)
@@ -1221,8 +1230,11 @@ class ProxyFrame(ttk.Frame):
 			self.selectedData = self.out.item(self.selectedRow)
 			self.chosenRow = self.selectedData["values"]
 			self.name.set(self.chosenRow[1])
-			self.http.set(self.chosenRow[2])
-			self.https.set(self.chosenRow[3])
+			# self.http.set(self.chosenRow[2])
+			self.httpentry.delete("1.0", END)
+			self.httpentry.insert("1.0", self.chosenRow[2])
+
+			# self.https.set(self.chosenRow[3])
 
 		except IndexError as error:
 			pass
@@ -1417,6 +1429,7 @@ class ResyBotBookingFrame(ttk.Frame):
 			messagebox.showerror("Error!", "Please Choose a Bot Check Availability to show the Log File!")
 			return
 		self.viewCheckBooking()
+		breakpoint()
 		logfile = f"logs/checkbooking_{self.chosenRow[0]}.log"
 		if Path(logfile).exists():
 			Popen(["notepad.exe", logfile])

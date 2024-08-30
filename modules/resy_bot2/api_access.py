@@ -30,7 +30,6 @@ logger.setLevel("ERROR")
 
 
 def build_session(config: ResyConfig) -> Session:
-
     session = Session()
     headers = {
         "Authorization": config.get_authorization(),
@@ -51,7 +50,6 @@ def build_session(config: ResyConfig) -> Session:
         }
         session.proxies.update(proxies)
         logger.info("Proxy Updated")
-    
     return session
 
 

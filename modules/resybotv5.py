@@ -74,6 +74,7 @@ def main():
     parser.add_argument('-mx', '--maxidle', type=str,help="Max Idle Time")
 
     args = parser.parse_args()
+    breakpoint()
     if not args.url or not args.date or not args.time or not args.seats or not args.reservation or not args.chprofile or not args.rdate or not args.rtime or not args.rhours or not args.runnow or not args.nonstop or not args.duration or not args.duration or not args.proxy or not args.retry or not args.minidle or not args.maxidle:
         input(" ".join(['Please add complete parameters, ex: python resybotv4b -u [url] -d [dd-mm-yyyy] -t [h:m am/pm] -s [seats_count] -p [period] -r [reservation_type] -cp [chrome_profile] -rd [rdate] -rt [rtime] -rh [rhours] -rn [runnow] -ns [nonstop] -dr [duration] -up [proxy] -re [retry] -mn [minidle] -mx [maxidle]', CLOSE_MESSAGE]))
         sys.exit()
@@ -83,11 +84,12 @@ def main():
     token = profile[3]
     api_key = profile[4]
     payment_method_id = profile[5]
-    file = open("profilelist.json", "r")
-    profilelist = json.load(file)
-    for profile in profilelist:
-        if profile['email'] == args.chprofile:
-            break
+    # file = open("profilelist.json", "r")
+    # profilelist = json.load(file)
+    # for profile in profilelist:
+    #     if profile['email'] == args.chprofile:
+    #         break
+
     myTable = PrettyTable(["KEY","VALUE"])
     myTable.align ="l"
     myTable.add_row(["Restaurant", args.url.split("/")[-1]])
@@ -128,12 +130,18 @@ def main():
         venue_id = response.json()['id']['resy']
         https_proxy = ''
         http_proxy = ''
-        if args.proxy != '<Not Set>':
-            proxy = db.getProxy(args.proxy)
-            http_proxy = proxy[2]
-            https_proxy = proxy[3]
+        proxies = []
+        if  str(args.proxy) != '<Not Set>':
+            proxy = db.getProxy(str(args.proxy))
+            proxies = proxy[2].split("\n")
+            http_proxy = proxies[0]
+            https_proxy = proxies[0]
+
+        # if args.proxy != '<Not Set>':
+        #     proxy = db.getProxy(args.proxy)
+        #     http_proxy = proxy[2]
+        #     https_proxy = proxy[3]
         resy_config = {"api_key": api_key, "token": token, "payment_method_id":payment_method_id, "email":email, "password":password, "http_proxy":http_proxy, "https_proxy": https_proxy, "retry_count": int(args.retry), "seconds_retry": 0.5}
-        
         if args.reservation == '<Not Set>':
             reservation_type = None
         else:

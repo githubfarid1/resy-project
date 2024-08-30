@@ -21,11 +21,11 @@ import subprocess
 from database import Database
 
 db = Database("db.sqlite3")
-
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 from settings import CLOSE_MESSAGE, CONTINUE_MESSAGE, TRY_MESSAGE, MIN_IDLE_TIME, MAX_IDLE_TIME
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel("INFO")
@@ -114,7 +114,7 @@ def main():
     hoursba = data[7]
     breservation = data[8]
     nonstop = data[9]
-    proxy = data[10]
+    proxyname = data[10]
     minidle = data[11]
     maxidle = data[12]
     retsecs = data[13]
@@ -130,25 +130,40 @@ def main():
     api_key = file.read()
     https_proxy = ''
     http_proxy = ''
-    if  proxy != '<Not Set>':
-        proxy = db.getProxy(proxy)
-        http_proxy = proxy[2]
-        https_proxy = proxy[3]
+    proxies = []
+    if  proxyname != '<Not Set>':
+        proxy = db.getProxy(proxyname)
+        proxies = proxy[2].split("\n")
+        http_proxy = proxies[0]
+        https_proxy = proxies[0]
     
     resy_config = {"api_key": api_key, "token": '', "payment_method_id": 999999, "email":'', "password":'', "http_proxy": http_proxy, "https_proxy": https_proxy, "retry_count": 1, "seconds_retry": float(retsecs)}
     venue_id = get_venue_id(resy_config=resy_config, urladdress=url)
     
     accountdata = db.getAccount(email=account)
-    # breakpoint()
     password = accountdata[2]
     token = accountdata[3]
     api_key = accountdata[4]
     payment_method_id = accountdata[5]
-    resy_config_booking = {"api_key": api_key, "token": token, "payment_method_id": payment_method_id, "email":account, "password":password, "http_proxy": http_proxy, "https_proxy": https_proxy, "retry_count": 1, "seconds_retry": float(retsecs)}
+    resy_config_booking = {"api_key": api_key, "token": token, "payment_method_id": payment_method_id, "email":account, "password":password, "http_proxy": http_proxy, "https_proxy": https_proxy, "retry_count": 3, "seconds_retry": float(retsecs)}
     strdateyesterday = datetime.strftime(datetime.now()-timedelta(days=1), '%Y-%m-%d')
-    flog = open(f"logs/checking_{id}.log", "w")
+    flog = open(f"logs/checkbooking_{id}.log", "w")
+    stoptime = datetime.now() + timedelta(minutes = 5)
+    proxyidx = 1
     try:
         while True:
+            if len(proxies) > 0:
+                if datetime.now() >= stoptime:
+                    stoptime = datetime.now() + timedelta(minutes = 5)
+                    resy_config['http_proxy'] = proxies[proxyidx]
+                    resy_config['https_proxy'] = proxies[proxyidx]
+                    tmpstr = f"IP Proxy updated: {resy_config['http_proxy']}"
+                    print(tmpstr)
+                    flog.write(tmpstr + "\n")
+                    proxyidx += 1
+                    if proxyidx == len(proxies):
+                        proxyidx = 0
+
             tmpstr = f"Restaurant URL: {url}"
             print(tmpstr)
             flog.write(tmpstr + "\n")
