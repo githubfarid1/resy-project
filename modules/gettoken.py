@@ -117,7 +117,7 @@ def main():
             wargs.append('--disable-web-security')
             wargs.append('--start-maximized')
             
-            browser =  pr.chromium.launch(headless=True, args=wargs)
+            # browser =  pr.chromium.launch(headless=True, args=wargs)
             browser =  pr.chromium.launch(headless=True, args=wargs, proxy={
                 "server": "http://198.143.4.8:10323",
                 "username": "14af2bc2a24d2",
