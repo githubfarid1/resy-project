@@ -119,9 +119,9 @@ def main():
             
             # browser =  pr.chromium.launch(headless=True, args=wargs)
             browser =  pr.chromium.launch(headless=True, args=wargs, proxy={
-                "server": "http://198.143.4.8:10323",
-                "username": "14af2bc2a24d2",
-                "password": "c85279a73c"                
+                "server": "http://gate.smartproxy.com:7000",
+                "username": "sp90lzhoej",
+                "password": "2vQ_jk6cpTF98ujLyj"                
             })
 
             page = browser.new_page()
