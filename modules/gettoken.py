@@ -134,7 +134,7 @@ def main():
             if page.query_selector('button.Button--login'):
                 login_to_resy(page, str(args.email), str(args.password))
                 message = "Logged in successfully."
-                time.sleep(3)
+                time.sleep(10)
                 if page.query_selector('button.Button--login'):
                     message = "Logged in Failed."
                     raise Exception(message)    
