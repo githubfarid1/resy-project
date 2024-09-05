@@ -118,11 +118,11 @@ def main():
             wargs.append('--start-maximized')
             
             browser =  pr.chromium.launch(headless=True, args=wargs)
-            # browser =  pr.chromium.launch(headless=True, args=wargs, proxy={
-            #     "server": "http://residential-proxy.scrapeops.io:8181",
-            #     "username": "scrapeops",
-            #     "password": "c58f3885-5149-4c03-8a3a-1b2d3ffba3c6"                
-            # })
+            browser =  pr.chromium.launch(headless=True, args=wargs, proxy={
+                "server": "http://198.143.4.8:10323",
+                "username": "14af2bc2a24d2",
+                "password": "c85279a73c"                
+            })
 
             page = browser.new_page()
             stealth_sync(page)
@@ -134,7 +134,7 @@ def main():
             if page.query_selector('button.Button--login'):
                 login_to_resy(page, str(args.email), str(args.password))
                 message = "Logged in successfully."
-                time.sleep(10)
+                time.sleep(3)
                 if page.query_selector('button.Button--login'):
                     message = "Logged in Failed."
                     raise Exception(message)    
