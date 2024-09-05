@@ -117,7 +117,11 @@ def main():
             wargs.append('--disable-web-security')
             wargs.append('--start-maximized')
             
-            browser =  pr.chromium.launch(headless=True, args=wargs)
+            browser =  pr.chromium.launch(headless=True, args=wargs, proxy={
+                "server": "http://residential-proxy.scrapeops.io:8181",
+                "username": "scrapeops",
+                "password": "c58f3885-5149-4c03-8a3a-1b2d3ffba3c6"                
+            })
             page = browser.new_page()
             stealth_sync(page)
             page.on("request", lambda request: intercept_request(request, email=args.email))
