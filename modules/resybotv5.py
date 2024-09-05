@@ -15,6 +15,9 @@ from resy_bot2.errors import NoSlotsError, ExhaustedRetriesError
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
 from database import Database
+from rich.table import Table
+from rich.console import Console
+
 db = Database("db.sqlite3")
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -92,25 +95,31 @@ def main():
     #     if profile['email'] == args.chprofile:
     #         break
 
-    myTable = PrettyTable(["KEY","VALUE"])
-    myTable.align ="l"
-    myTable.add_row(["Restaurant", args.url.split("/")[-1]])
-    myTable.add_row(["Date Wanted", args.date])
-    myTable.add_row(["Time Wanted", args.time])
-    myTable.add_row(["Seats", args.seats])
-    myTable.add_row(["Reservation Type", args.reservation])
-    myTable.add_row(["Account", email])
-    myTable.add_row(["Bot Run Date", args.rdate])
-    myTable.add_row(["Bot Run Time",args.rtime])
-    myTable.add_row(["Range Hours",args.rhours])
-    myTable.add_row(["Run Immediately", args.runnow])
-    myTable.add_row(["Non Stop Checking", args.nonstop])
-    myTable.add_row(["Bot Duration", f"{args.duration} Minute"])
-    myTable.add_row(["Proxy", args.proxy])
-    myTable.add_row(["Retry Count", args.retry])
-    myTable.add_row(["Min Idle Time", args.minidle])
-    myTable.add_row(["Max Idle Time", args.maxidle])
-    print(myTable)
+    # myTable = PrettyTable(["KEY","VALUE"])
+    # myTable.align ="l"
+    
+    myTable = Table(title="Reservation Detail")
+    myTable.add_column("KEY", justify="left", style="cyan")
+    myTable.add_column("VALUE", justify="left", style="green")    
+    myTable.add_row("Restaurant", args.url.split("/")[-1])
+    myTable.add_row("Date Wanted", args.date)
+    myTable.add_row("Time Wanted", args.time)
+    myTable.add_row("Seats", args.seats)
+    myTable.add_row("Reservation Type", args.reservation)
+    myTable.add_row("Account", email)
+    myTable.add_row("Bot Run Date", args.rdate)
+    myTable.add_row("Bot Run Time",args.rtime)
+    myTable.add_row("Range Hours",args.rhours)
+    myTable.add_row("Run Immediately", args.runnow)
+    myTable.add_row("Non Stop Checking", args.nonstop)
+    myTable.add_row("Bot Duration", f"{args.duration} Minute")
+    myTable.add_row("Proxy", args.proxy)
+    myTable.add_row("Retry Count", args.retry)
+    myTable.add_row("Min Idle Time", args.minidle)
+    myTable.add_row("Max Idle Time", args.maxidle)
+    # print(myTable)
+    console = Console()
+    console.print(myTable)    
     headers = {
         "Authorization": 'ResyAPI api_key="{}"'.format(api_key),
         "X-Resy-Auth-Token": token,

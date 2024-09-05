@@ -37,7 +37,7 @@ def intercept_request(request):
     if "https://api.resy.com/2/config" in request.url:
         try:
             api_key=str(request.headers['authorization']).replace('ResyAPI api_key=', "").replace('"','')
-            f = open("logs/api_key.log", "w")
+            f = open("logs/api_key2.log", "w")
             f.write(api_key)
         except:
             return request        
@@ -127,6 +127,7 @@ def main():
     end_date = datetime.strptime(enddate, '%Y-%m-%d').date()
     get_api_key()
     file = open("logs/api_key.log", "r")
+    breakpoint()
     api_key = file.read()
     https_proxy = ''
     http_proxy = ''
@@ -164,21 +165,20 @@ def main():
                     if proxyidx == len(proxies):
                         proxyidx = 0
 
-            tmpstr = f"Restaurant URL: {url}"
-            print(tmpstr)
-            flog.write(tmpstr + "\n")
-            tmpstr = f"Range Date: {startdate} - {enddate}"
-            print(tmpstr)
-            flog.write(tmpstr + "\n")
-            tmpstr = f"Seats Count: {seats}"
-            print(tmpstr)
-            flog.write(tmpstr + "\n")
+            myTable = PrettyTable(["KEY","VALUE"])
+            myTable.align ="l"
+            myTable.add_row(["Restaurant URL", url])
+            myTable.add_row(["Range Date", f"{startdate} - {enddate}"])
+            myTable.add_row(["Seats Wanted", seats])
+            print(myTable)
+            flog.write(str(myTable))
             print("")
             flog.write("\n")
             for single_date in daterange(start_date, end_date):
                 searchdate = single_date.strftime("%Y-%m-%d")
-                print(searchdate)
-                flog.write(searchdate + "\n")
+                tmpstr = f"Date Searching: {searchdate}"
+                print(tmpstr)
+                flog.write(tmpstr + "\n")
                 reservation_config = {
                 "reservation_request": {
                 "party_size": int(seats),
@@ -203,6 +203,8 @@ def main():
                     myTable.align ="l"
                     slots = check_now(resy_config=resy_config, reservation_config=reservation_config)
                     if len(slots) != 0:
+                        print(searchdate)
+                        flog.write(searchdate + "\n")
                         tmpstr = f"Found {len(slots)} Slots"
                         print(tmpstr)
                         flog.write(tmpstr + "\n")
