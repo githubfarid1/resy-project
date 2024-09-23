@@ -127,7 +127,7 @@ def main():
     end_date = datetime.strptime(enddate, '%Y-%m-%d').date()
     get_api_key()
     file = open("logs/api_key.log", "r")
-    breakpoint()
+    # breakpoint()
     api_key = file.read()
     https_proxy = ''
     http_proxy = ''

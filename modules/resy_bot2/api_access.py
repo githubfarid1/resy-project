@@ -26,7 +26,7 @@ from resy_bot2.errors import Get500Error
 # from settings import PROXIES
 
 logger = logging.getLogger(__name__)
-logger.setLevel("ERROR")
+logger.setLevel("INFO")
 
 
 def build_session(config: ResyConfig) -> Session:
@@ -49,9 +49,7 @@ def build_session(config: ResyConfig) -> Session:
             'https': config.https_proxy,
         }
         session.proxies.update(proxies)
-        # logger.info("Proxy Updated")
     return session
-
 
 class ResyApiAccess:
     @classmethod
@@ -82,7 +80,7 @@ class ResyApiAccess:
         resp = self.session.post(
             auth_url,
             data=body.dict(),
-            headers={"content-type": "application/x-www-form-urlencoded"},
+            headers={"content-type": "application/x-www-form-urlencoded"}, 
         )
 
         if not resp.ok:
@@ -98,7 +96,8 @@ class ResyApiAccess:
 
         resp = self.session.get(find_url, params=params.dict())
         logger.info(f"{datetime.now().isoformat()}: Received response for ")
-
+        # ipused = self.get_ip_used().strip()
+        # logger.info(ipused)
         if not resp.ok:
             #frd
             if resp.status_code == 500:
